@@ -42,7 +42,7 @@ async function startServer() {
     typeDefs,
     resolvers,
     cors: {
-      origin: "http://localhost:8100",
+      origin: "https://malamino.herokuapp.com",
       credentials: true,
       methods: "GET, HEAD, PUT, PATCH, POST",
     },
