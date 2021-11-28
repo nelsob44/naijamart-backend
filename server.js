@@ -1,7 +1,7 @@
 const express = require("express");
 const { ApolloServer } = require("apollo-server-express");
 const jwt = require("jsonwebtoken");
-const cors = require("cors");
+const port = process.env.PORT || 4000;
 const typeDefs = require("./typeDefs/typeDefs");
 const resolvers = require("./resolvers/resolver");
 const mongoose = require("mongoose");
@@ -100,7 +100,7 @@ async function startServer() {
 
   console.log("Mongoose connected...");
 
-  app.listen(4000, () => console.log("Server running on port 4000"));
+  app.listen(port, () => console.log("Server running on port 4000"));
 }
 
 startServer();
