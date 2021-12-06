@@ -1,5 +1,6 @@
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
+const cookieParser = require("cookie-parser");
 const User = require("../models/User.model");
 const { AuthenticationError } = require("apollo-server-errors");
 

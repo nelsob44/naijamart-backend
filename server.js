@@ -7,65 +7,104 @@ const resolvers = require("./resolvers/resolver");
 const mongoose = require("mongoose");
 require("dotenv").config();
 const guid = require("guid");
-const refreshTokens = {};
+const cookieParser = require("cookie-parser");
+const cors = require("cors");
+const refreshTokens = [];
+
+// const corsOptions = {
+//   origin: ["http://localhost:8100/"],
+//   optionsSuccessStatus: 200,
+//   credentials: true,
+//   methods: "GET, HEAD, PUT, PATCH, POST, OPTIONS",
+//   exposedHeaders: "*",
+// };
 
 async function startServer() {
   const app = express();
-  // app.use(cors(corsOptions));
+  app.use(cookieParser());
+  //app.use(cors(corsOptions));
+  app.use((req, res, next) => {
+    res.setHeader("Access-Control-Allow-Origin", process.env.CLIENT);
+    res.setHeader(
+      "Access-Control-Allow-Methods",
+      "GET, POST, PUT, PATCH, DELETE, OPTIONS"
+    );
+    res.setHeader("Access-Control-Allow-Credentials", true);
+    res.setHeader(
+      "Access-Control-Allow-Headers",
+      "Content-Type, Authorization, Cookie, Accept, Host, Referer, Accept-Encoding"
+    );
+    if (req.method === "OPTIONS") {
+      return res.sendStatus(200);
+    }
+    next();
+  });
 
   // parse requests of content-type - application/json
   // app.use(express.urlencoded({ extended: true }));
   // app.use(express.json());
   const apolloServer = new ApolloServer({
     context: ({ req }) => {
-      const ctx = { email: null, refreshToken: null };
-      const cookies = (req.headers?.cookie ?? "")
-        .split(";")
-        .reduce((obj, c) => {
-          const [email, value] = c.split("=");
-          obj[email.trim()] = value.trim();
-          return obj;
+      let ctx = {
+        email: null,
+        userId: null,
+        refreshToken: null,
+        matchingToken: false,
+        validAccessToken: false,
+      };
+      const cookies = (req.headers?.cookie ?? "").split(";");
+      if (cookies) {
+        cookies.map((cookie) => {
+          if (cookie.includes(process.env.REF_COOKIE_NAME)) {
+            const refToken = cookie.split("=");
+            ctx.refreshToken = refToken[1];
+            if (refreshTokens[0] === refToken[1]) {
+              ctx.matchingToken = true;
+            }
+          }
         });
-      ctx.refreshToken = cookies?.refreshToken;
+      }
 
       try {
-        if (req.headers["x-access-token"]) {
-          const token = jwt.verify(
-            req.headers["x-access-token"],
-            process.env.JWT_SECRET
-          );
+        if (req.headers.authorization) {
+          const credential = req.headers.authorization.split(" ");
+          const token = jwt.verify(credential[1], process.env.JWT_SECRET);
+          if (token) {
+            const currentTimeStamp = Math.round(new Date().getTime() / 1000);
+            if (token.exp > currentTimeStamp) {
+              ctx.validAccessToken = true;
+            }
+          }
           ctx.email = token.email;
+          ctx.userId = token.userId;
         }
       } catch (e) {}
       return ctx;
     },
     typeDefs,
     resolvers,
-    cors: {
-      origin: "https://malamino.herokuapp.com",
-      credentials: true,
-      methods: "GET, HEAD, PUT, PATCH, POST",
-    },
+    cors: false,
     formatResponse: (response, requestContext) => {
       if (response.errors && !requestContext.request.variables?.password) {
         if (requestContext.response?.http) {
           requestContext.response.http.status = 401;
         }
-      } else if (
-        response.data?.authenticateUser?.accessToken ||
-        response.data?.refresh
-      ) {
+      } else {
         const tokenExpireDate = new Date();
         tokenExpireDate.setTime(
           tokenExpireDate.getTime() + 60 * 60 * 24 * 7 * 1000
         );
+        refreshTokens.length = 0;
         const refreshTokenGuid = guid.raw();
-        const token = jwt.verify(
-          response.data?.authenticateUser.accessToken || response.data.refresh,
-          process.env.JWT_SECRET
-        );
+        // const token = jwt.verify(
+        //   response.data?.authenticateUser.accessToken || response.data.refresh,
+        //   process.env.JWT_SECRET
+        // );
 
-        refreshTokens[refreshTokenGuid] = token.data;
+        // const currentTimeStamp = Math.round(new Date().getTime() / 1000);
+        // console.log("verified token is ", token);
+        // console.log("timestamp is ", currentTimeStamp);
+
         const refreshToken = jwt.sign(
           {
             data: refreshTokenGuid,
@@ -73,10 +112,15 @@ async function startServer() {
           process.env.JWT_SECRET,
           { expiresIn: "7 days" }
         );
+        refreshTokens.push(refreshToken);
+        requestContext.response?.http?.headers.append(
+          "Access-Control-Allow-Origin",
+          process.env.CLIENT
+        );
 
         requestContext.response?.http?.headers.append(
           "Set-Cookie",
-          `refreshToken=${refreshToken}; expires=${tokenExpireDate}; httpOnly=true;`
+          `${process.env.REF_COOKIE_NAME}=${refreshToken}; expires=${tokenExpireDate}; httpOnly=true;`
         );
       }
       return response;
