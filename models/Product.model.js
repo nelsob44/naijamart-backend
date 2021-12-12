@@ -3,6 +3,7 @@ const mongoose = require("mongoose");
 const ProductSchema = new mongoose.Schema({
   category: {
     type: String,
+    enum: ["electronics", "machinery", "others"],
     required: true,
   },
   description: {
@@ -34,44 +35,22 @@ const ProductSchema = new mongoose.Schema({
     default: false,
   },
   furtherDetails: {
-    type: ProductAndSellerDescriptionSchema,
+    type: String,
     required: true,
   },
   discount: {
     type: Number,
     default: 0,
   },
-  promoEndDate: {
-    type: Date,
-  },
-});
-
-const ProductAndSellerDescriptionSchema = new mongoose.Schema({
-  productDetails: {
-    type: String,
-    required: true,
-  },
   reviews: {
     type: Number,
     default: 0,
   },
-  transactions: {
-    type: Transactions,
+  promoStartDate: {
+    type: Date,
   },
-});
-
-const Transactions = new mongoose.Schema({
-  totalQuantities: {
-    type: Number,
-    default: 0,
-  },
-  totalBuyers: {
-    type: Number,
-    default: 0,
-  },
-  totalTransactions: {
-    type: Number,
-    default: 0,
+  promoEndDate: {
+    type: Date,
   },
 });
 

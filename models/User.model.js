@@ -37,6 +37,11 @@ const UserSchema = new mongoose.Schema({
     type: Boolean,
     default: false,
   },
+  privilegeLevel: {
+    type: String,
+    enum: ["consumer", "customer", "admin"],
+    default: "consumer",
+  },
   registrationDate: {
     type: Date,
     default: Date.now(),

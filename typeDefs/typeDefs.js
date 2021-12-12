@@ -14,9 +14,23 @@ const typeDefs = gql`
     isVerified: Boolean
   }
 
-  type Query {
-    hello: String
+  type Product {
+    category: String!
+    description: String!
+    image: [String]
+    price: Float!
+    title: String!
+    minOrder: Float!
+    sellerLocation: String!
+    verifiedSeller: Boolean!
+    furtherDetails: String
+    discount: Float
+    reviews: Float
+    promoEndDate: String
+    promoStartDate: String
+  }
 
+  type Query {
     getUser(id: ID): User
   }
 
@@ -25,6 +39,21 @@ const typeDefs = gql`
     email: String!
     firstName: String!
     userId: String!
+    privilege: String!
+  }
+
+  input ProductInput {
+    category: String!
+    description: String!
+    image: [String]!
+    price: Float!
+    title: String!
+    minOrder: Float
+    sellerLocation: String!
+    discount: Float!
+    promoStartDate: String
+    promoEndDate: String
+    furtherDetails: String
   }
 
   input UserInput {
@@ -50,6 +79,7 @@ const typeDefs = gql`
 
     authenticateUser(user: AuthInput): Token
     refresh: String
+    addProduct(product: ProductInput): Product
   }
 `;
 

@@ -6,9 +6,6 @@ const { AuthenticationError } = require("apollo-server-errors");
 
 const resolvers = {
   Query: {
-    hello: () => {
-      return "Hello world! modified";
-    },
     getUser: async (_parent, { id }, _context, _info) => {
       return await User.findById(id);
     },
@@ -101,6 +98,7 @@ const resolvers = {
             email: user.email,
             firstName: user.firstName,
             userId: user._id.toString(),
+            privilege: user.privilegeLevel,
           };
         }
       } else {
@@ -118,6 +116,7 @@ const resolvers = {
         );
       }
     },
+    addProduct: (parent, args, context, info) => {},
   },
 };
 

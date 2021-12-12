@@ -135,7 +135,7 @@ async function startServer() {
   });
 
   await mongoose.connect(
-    `mongodb+srv://${process.env.DB_PASSWORD}:${process.env.DB_USERNAME}.svans.mongodb.net/myFirstDatabase?retryWrites=true&w=majority`,
+    `mongodb+srv://${process.env.DB_PASSWORD}:${process.env.DB_USERNAME}.svans.mongodb.net/malaminoDB?retryWrites=true&w=majority`,
     {
       useUnifiedTopology: true,
       useNewUrlParser: true,
