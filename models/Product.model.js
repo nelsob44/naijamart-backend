@@ -10,7 +10,7 @@ const ProductSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
-  image: {
+  images: {
     type: [String],
     required: true,
   },
@@ -30,6 +30,10 @@ const ProductSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  sellerEmail: {
+    type: String,
+    required: true,
+  },
   verifiedSeller: {
     type: Boolean,
     default: false,
@@ -37,6 +41,10 @@ const ProductSchema = new mongoose.Schema({
   furtherDetails: {
     type: String,
     required: true,
+  },
+  availableQuantity: {
+    type: Number,
+    default: 1,
   },
   discount: {
     type: Number,
@@ -47,10 +55,10 @@ const ProductSchema = new mongoose.Schema({
     default: 0,
   },
   promoStartDate: {
-    type: Date,
+    type: String,
   },
   promoEndDate: {
-    type: Date,
+    type: String,
   },
 });
 

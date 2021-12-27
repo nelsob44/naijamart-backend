@@ -1,6 +1,8 @@
 const { gql } = require("apollo-server-express");
 
 const typeDefs = gql`
+  scalar Upload
+
   type User {
     id: ID
     firstName: String
@@ -15,15 +17,18 @@ const typeDefs = gql`
   }
 
   type Product {
-    category: String!
-    description: String!
-    image: [String]
+    id: ID
+    category: String
+    description: String
+    images: [String]
     price: Float!
     title: String!
-    minOrder: Float!
-    sellerLocation: String!
-    verifiedSeller: Boolean!
+    minOrder: Float
+    sellerLocation: String
+    sellerEmail: String
+    verifiedSeller: Boolean
     furtherDetails: String
+    availableQuantity: Int
     discount: Float
     reviews: Float
     promoEndDate: String
@@ -42,18 +47,26 @@ const typeDefs = gql`
     privilege: String!
   }
 
+  type File {
+    filename: String!
+    mimetype: String!
+    encoding: String!
+  }
+
   input ProductInput {
     category: String!
     description: String!
-    image: [String]!
     price: Float!
     title: String!
     minOrder: Float
-    sellerLocation: String!
-    discount: Float!
+    sellerLocation: String
+    sellerEmail: String
+    furtherDetails: String
+    availableQuantity: Int
+    discount: Float
     promoStartDate: String
     promoEndDate: String
-    furtherDetails: String
+    images: [String]
   }
 
   input UserInput {
@@ -70,6 +83,10 @@ const typeDefs = gql`
   input AuthInput {
     email: String!
     password: String!
+  }
+
+  type Query {
+    getMyProducts(sellerEmail: String): [Product]
   }
 
   type Mutation {
