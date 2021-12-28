@@ -99,3 +99,39 @@ async function uploadObjects(files) {
   return objects;
 }
 exports.uploadObjects = uploadObjects;
+
+async function deleteObjects(objectKeys) {
+  // create an object containing the name of the bucket, the key, body, and acl of the object.
+  let deleteParams = {
+    Bucket: bucketName,
+    Delete: {
+      Objects: [],
+    },
+  };
+
+  // Loop through all the object keys sent pushing them to the params object.
+  objectKeys.forEach((objectKey) =>
+    deleteParams.Delete.Objects.push({
+      Key: objectKey,
+    })
+  );
+
+  // promisify the deleteObjects() function so that we can use the async/await syntax.
+  //let removeObjects = promisify(this.s3.deleteObjects.bind(this.s3));
+
+  // remove the objects.
+  //await removeObjects(params).catch(console.log);
+
+  let result = await s3
+    .deleteObjects(deleteParams)
+    .promise()
+    .catch(console.log);
+
+  // return the response to the client.
+  return {
+    success: true,
+    message: "Successfully deleted objects",
+    result: result,
+  };
+}
+exports.deleteObjects = deleteObjects;

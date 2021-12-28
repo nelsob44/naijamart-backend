@@ -61,6 +61,7 @@ async function startServer() {
         refreshToken: null,
         matchingToken: false,
         validAccessToken: false,
+        userStatus: null,
       };
       const currentTimeStamp = Math.round(new Date().getTime() / 1000);
       const cookies = (req.headers?.cookie ?? "").split(";");
@@ -80,6 +81,7 @@ async function startServer() {
             ctx.email = token.email;
             userEmail = token.email;
             ctx.userId = token.userId;
+            ctx.userStatus = token.privilege;
             async function checkCredentials() {
               const user = await User.findOne({ email: token.email });
               if (user) {

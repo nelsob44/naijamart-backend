@@ -35,10 +35,6 @@ const typeDefs = gql`
     promoStartDate: String
   }
 
-  type Query {
-    getUser(id: ID): User
-  }
-
   type Token {
     accessToken: String!
     email: String!
@@ -87,6 +83,8 @@ const typeDefs = gql`
 
   type Query {
     getMyProducts(sellerEmail: String): [Product]
+    getAvailableProducts(id: ID): [Product]
+    getUser(id: ID): User
   }
 
   type Mutation {
@@ -97,6 +95,7 @@ const typeDefs = gql`
     authenticateUser(user: AuthInput): Token
     refresh: String
     addProduct(product: ProductInput): Product
+    deleteProduct(id: ID): String
   }
 `;
 

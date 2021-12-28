@@ -5,7 +5,25 @@ const User = require("../models/User.model");
 const Product = require("../models/Product.model");
 const { AuthenticationError } = require("apollo-server-errors");
 const { GraphQLUpload, graphqlUploadExpress } = require("graphql-upload");
+const { deleteObjects } = require("../s3");
 const guid = require("guid");
+
+const imagesCarousel = [];
+
+function transformImagePath(productImages) {
+  productImages.map((img) => {
+    //  let carouselObj = {
+    //    url: "",
+    //    key: "",
+    //  };
+    const newImg = img.split(",");
+    //  carouselObj = {
+    //    url: newImg[1],
+    //    key: newImg[0],
+    //  };
+    imagesCarousel.push(newImg[0]);
+  });
+}
 
 const resolvers = {
   Upload: GraphQLUpload,
@@ -15,7 +33,7 @@ const resolvers = {
     },
 
     getMyProducts: async (parent, args, _context, info) => {
-      if (_context.email) {
+      if (_context.validAccessToken) {
         const sellerEmail = _context.email;
         try {
           const products = await Product.find({ sellerEmail });
@@ -25,6 +43,15 @@ const resolvers = {
         }
       } else {
         throw new Error("You are not authorised to make this operation");
+      }
+    },
+
+    getAvailableProducts: async (parent, args, _context, info) => {
+      try {
+        const products = await Product.find({ availableQuantity: { $gte: 1 } });
+        return products;
+      } catch (err) {
+        throw new Error(err);
       }
     },
   },
@@ -129,6 +156,7 @@ const resolvers = {
             {
               email: user.email,
               userId: user._id.toString(),
+              privilege: user.privilegeLevel,
             },
             process.env.JWT_SECRET,
             { expiresIn: 3000 }
@@ -200,21 +228,31 @@ const resolvers = {
         );
       }
     },
-    // singleUpload: async (parent, { file }) => {
-    //   const { createReadStream, filename, mimetype, encoding } = await file;
-
-    //   // Invoking the `createReadStream` will return a Readable Stream.
-    //   // See https://nodejs.org/api/stream.html#stream_readable_streams
-    //   const stream = createReadStream();
-
-    //   // This is purely for demonstration purposes and will overwrite the
-    //   // local-file-output.txt in the current working directory on EACH upload.
-    //   const out = require("fs").createWriteStream("local-file-output.txt");
-    //   stream.pipe(out);
-    //   await finished(out);
-
-    //   return { filename, mimetype, encoding };
-    // },
+    deleteProduct: async (parent, args, context, info) => {
+      const { id } = args;
+      if (context.validAccessToken) {
+        try {
+          const product = await Product.findById(id);
+          if (
+            product.sellerEmail === context.email ||
+            context.userStatus === "admin"
+          ) {
+            await transformImagePath(product.images);
+            const delResults = await deleteObjects(imagesCarousel);
+            if (delResults.result.Errors.length === 0) {
+              await Product.findByIdAndDelete(id);
+              return "Product was successfully deleted";
+            }
+          } else {
+            throw new Error("You are not authorized to make this operation");
+          }
+        } catch (err) {
+          throw new Error(err);
+        }
+      } else {
+        throw new Error("You are not authorized to make this operation");
+      }
+    },
   },
 };
 
