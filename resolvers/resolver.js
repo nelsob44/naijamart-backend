@@ -12,15 +12,8 @@ const imagesCarousel = [];
 
 function transformImagePath(productImages) {
   productImages.map((img) => {
-    //  let carouselObj = {
-    //    url: "",
-    //    key: "",
-    //  };
     const newImg = img.split(",");
-    //  carouselObj = {
-    //    url: newImg[1],
-    //    key: newImg[0],
-    //  };
+
     imagesCarousel.push(newImg[0]);
   });
 }
@@ -33,10 +26,21 @@ const resolvers = {
     },
 
     getMyProducts: async (parent, args, _context, info) => {
+      const { offset, limit } = args.myproductQuery;
       if (_context.validAccessToken) {
         const sellerEmail = _context.email;
         try {
-          const products = await Product.find({ sellerEmail });
+          const totalItems = await Product.find({
+            sellerEmail,
+          }).countDocuments();
+          const result = await Product.find({ sellerEmail })
+            .sort({ createdAt: -1 })
+            .skip((offset - 1) * limit)
+            .limit(limit);
+          const products = {
+            product: result,
+            totalItems: totalItems,
+          };
           return products;
         } catch (err) {
           throw new Error(err);
@@ -47,8 +51,19 @@ const resolvers = {
     },
 
     getAvailableProducts: async (parent, args, _context, info) => {
+      const { offset, limit } = args.pagination;
       try {
-        const products = await Product.find({ availableQuantity: { $gte: 1 } });
+        const totalItems = await Product.find({
+          availableQuantity: { $gte: 1 },
+        }).countDocuments();
+        const result = await Product.find({ availableQuantity: { $gte: 1 } })
+          .sort({ createdAt: -1 })
+          .skip((offset - 1) * limit)
+          .limit(limit);
+        const products = {
+          product: result,
+          totalItems: totalItems,
+        };
         return products;
       } catch (err) {
         throw new Error(err);

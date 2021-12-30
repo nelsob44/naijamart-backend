@@ -35,6 +35,11 @@ const typeDefs = gql`
     promoStartDate: String
   }
 
+  type ProductPaginate {
+    product: [Product]
+    totalItems: Int
+  }
+
   type Token {
     accessToken: String!
     email: String!
@@ -47,6 +52,17 @@ const typeDefs = gql`
     filename: String!
     mimetype: String!
     encoding: String!
+  }
+
+  input PaginationInput {
+    offset: Int
+    limit: Int
+  }
+
+  input PaginationInputQuery {
+    offset: Int
+    limit: Int
+    sellerEmail: String
   }
 
   input ProductInput {
@@ -82,8 +98,8 @@ const typeDefs = gql`
   }
 
   type Query {
-    getMyProducts(sellerEmail: String): [Product]
-    getAvailableProducts(id: ID): [Product]
+    getMyProducts(myproductQuery: PaginationInputQuery): ProductPaginate
+    getAvailableProducts(pagination: PaginationInput): ProductPaginate
     getUser(id: ID): User
   }
 
