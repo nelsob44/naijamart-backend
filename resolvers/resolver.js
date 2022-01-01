@@ -35,8 +35,8 @@ const resolvers = {
           }).countDocuments();
           const result = await Product.find({ sellerEmail })
             .sort({ createdAt: -1 })
-            .skip((offset - 1) * limit)
-            .limit(limit);
+            .skip(((offset || 1) - 1) * (limit || 3))
+            .limit(limit || 3);
           const products = {
             product: result,
             totalItems: totalItems,
@@ -58,8 +58,8 @@ const resolvers = {
         }).countDocuments();
         const result = await Product.find({ availableQuantity: { $gte: 1 } })
           .sort({ createdAt: -1 })
-          .skip((offset - 1) * limit)
-          .limit(limit);
+          .skip(((offset || 1) - 1) * (limit || 3))
+          .limit(limit || 3);
         const products = {
           product: result,
           totalItems: totalItems,
@@ -154,19 +154,6 @@ const resolvers = {
           error.statusCode = 401;
           throw error;
         } else {
-          // const refreshTokenGuid = guid.raw();
-
-          // const refreshToken = jwt.sign(
-          //   {
-          //     data: refreshTokenGuid,
-          //   },
-          //   process.env.JWT_SECRET,
-          //   { expiresIn: "2 days" }
-          // );
-          // const newUser = await User.findOneAndUpdate(
-          //   { email: email },
-          //   { refreshToken: refreshToken }
-          // );
           const token = jwt.sign(
             {
               email: user.email,
@@ -190,7 +177,7 @@ const resolvers = {
     },
     addProduct: async (parent, args, context, info) => {
       console.log("got here now validAccessToken ", context?.validAccessToken);
-      if (context?.validAccessToken) {
+      if (context.validAccessToken) {
         const {
           category,
           description,
@@ -241,6 +228,68 @@ const resolvers = {
           process.env.JWT_SECRET,
           { expiresIn: "7 days" }
         );
+      }
+    },
+
+    updateProduct: async (parent, args, context, info) => {
+      const {
+        id,
+        category,
+        description,
+        price,
+        title,
+        minOrder,
+        sellerLocation,
+        sellerEmail,
+        furtherDetails,
+        availableQuantity,
+        discount,
+        promoStartDate,
+        promoEndDate,
+        images,
+      } = args.product;
+      try {
+        if (context.validAccessToken) {
+          let newImages = [];
+          const oldProduct = await Product.findById(id);
+          const oldImages = oldProduct.images;
+          if (images.length > 0) {
+            newImages = oldImages.concat(images);
+          } else {
+            newImages = images;
+          }
+          if (
+            oldProduct.sellerEmail === context.email ||
+            context.userStatus === "admin"
+          ) {
+            const product = await Product.findByIdAndUpdate(
+              id,
+              {
+                category,
+                description,
+                price,
+                title,
+                minOrder,
+                sellerLocation,
+                sellerEmail,
+                furtherDetails,
+                availableQuantity,
+                discount,
+                promoStartDate,
+                promoEndDate,
+                images: newImages,
+              },
+              { new: true }
+            );
+            return product;
+          } else {
+            throw new Error("You are not authorized to make this operation");
+          }
+        } else {
+          throw new Error("You are not authorized to make this operation");
+        }
+      } catch (error) {
+        throw new Error(error);
       }
     },
     deleteProduct: async (parent, args, context, info) => {

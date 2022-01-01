@@ -81,6 +81,23 @@ const typeDefs = gql`
     images: [String]
   }
 
+  input UpdateProductInput {
+    id: ID!
+    category: String
+    description: String
+    price: Float
+    title: String
+    minOrder: Float
+    sellerLocation: String
+    sellerEmail: String
+    furtherDetails: String
+    availableQuantity: Int
+    discount: Float
+    promoStartDate: String
+    promoEndDate: String
+    images: [String]
+  }
+
   input UserInput {
     firstName: String!
     lastName: String!
@@ -107,6 +124,8 @@ const typeDefs = gql`
     createUser(user: UserInput): User
     deleteUser(id: ID): String
     updateUser(id: ID, user: UserInput): User
+
+    updateProduct(product: UpdateProductInput): Product
 
     authenticateUser(user: AuthInput): Token
     refresh: String
