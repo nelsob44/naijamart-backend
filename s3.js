@@ -91,7 +91,6 @@ async function uploadObjects(files) {
       key: uploadParams.Key,
       url: result.Location,
     });
-
     await unlinkFile(file.path);
   }
 

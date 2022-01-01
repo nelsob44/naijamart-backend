@@ -201,15 +201,7 @@ async function startServer() {
           const currentTimeStamp = Math.round(new Date().getTime() / 1000);
           if (token.exp > currentTimeStamp) {
             const files = req.files;
-            const responses = [];
-
             const result = await uploadObjects(files);
-            //await unlinkFile(file.path);
-
-            // console.log(result);
-            // return res.status(201).json({upload.single("files"),
-            //   imageUrl: `https://${process.env.S3_BUCKET}.s3.amazonaws.com/${uniqueName}`,
-            // });
             return res.status(200).json({ imagePath: result });
           } else {
             throw new AuthenticationError(

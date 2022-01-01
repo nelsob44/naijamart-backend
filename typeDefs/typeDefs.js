@@ -24,6 +24,7 @@ const typeDefs = gql`
     price: Float!
     title: String!
     minOrder: Float
+    sellerCountry: String
     sellerLocation: String
     sellerEmail: String
     verifiedSeller: Boolean
@@ -71,6 +72,7 @@ const typeDefs = gql`
     price: Float!
     title: String!
     minOrder: Float
+    sellerCountry: String
     sellerLocation: String
     sellerEmail: String
     furtherDetails: String
@@ -88,6 +90,7 @@ const typeDefs = gql`
     price: Float
     title: String
     minOrder: Float
+    sellerCountry: String
     sellerLocation: String
     sellerEmail: String
     furtherDetails: String

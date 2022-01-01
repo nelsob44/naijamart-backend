@@ -27,6 +27,10 @@ const ProductSchema = new mongoose.Schema(
       type: Number,
       required: true,
     },
+    sellerCountry: {
+      type: String,
+      required: true,
+    },
     sellerLocation: {
       type: String,
       required: true,
