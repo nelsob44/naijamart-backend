@@ -111,6 +111,26 @@ const resolvers = {
       await User.findByIdAndDelete(id);
       return "User successfully deleted";
     },
+    sendResetLink: async (parent, args, context, info) => {
+      console.log(args);
+      const { email } = args;
+      const user = await User.findOne({ email });
+      if (user) {
+        const userId = user._id.toString();
+        const resetTokenGuid = guid.raw();
+        const resetPasswordToken = encodeURIComponent(resetTokenGuid);
+        console.log({ resetTokenGuid });
+        console.log({ resetPasswordToken });
+        await User.findByIdAndUpdate(userId, {
+          resetPasswordToken,
+        });
+        //Send email
+
+        return "Check your email to click on the link to create your new password!";
+      } else {
+        throw new Error("User not found");
+      }
+    },
     updateUser: async (parent, args, context, info) => {
       const { id } = args;
       const {
@@ -143,36 +163,61 @@ const resolvers = {
         throw new AuthenticationError("Invalid credentials!");
       }
     },
+    changePassword: async (parent, args, context, info) => {
+      const { email, password, resetPasswordToken } = args.user;
+      const user = await User.findOne({ email, resetPasswordToken });
+      if (user) {
+        const userId = user._id.toString();
+        const hashedPassword = await bcrypt.hash(password, 12);
+
+        await User.findByIdAndUpdate(
+          userId,
+          {
+            password: hashedPassword,
+            resetPasswordToken: "",
+          },
+          { new: true }
+        );
+
+        return "Password reset was successful. Please login with new password.";
+      } else {
+        throw new Error("User not found");
+      }
+    },
     authenticateUser: async (parent, args, context, info) => {
       const { email, password } = args.user;
       const user = await User.findOne({ email });
-      if (user) {
-        const isEqual = await bcrypt.compare(password, user.password);
-        const userId = user._id.toString();
-        if (!isEqual) {
-          const error = new Error("Wrong email/password combination!");
-          error.statusCode = 401;
-          throw error;
-        } else {
-          const token = jwt.sign(
-            {
+      try {
+        if (user) {
+          const isEqual = await bcrypt.compare(password, user.password);
+          const userId = user._id.toString();
+          if (!isEqual) {
+            const error = new Error("Wrong email/password combination!");
+            error.statusCode = 401;
+            throw error;
+          } else {
+            const token = jwt.sign(
+              {
+                email: user.email,
+                userId: user._id.toString(),
+                privilege: user.privilegeLevel,
+              },
+              process.env.JWT_SECRET,
+              { expiresIn: 3000 }
+            );
+            return {
+              accessToken: token,
               email: user.email,
+              firstName: user.firstName,
               userId: user._id.toString(),
               privilege: user.privilegeLevel,
-            },
-            process.env.JWT_SECRET,
-            { expiresIn: 3000 }
-          );
-          return {
-            accessToken: token,
-            email: user.email,
-            firstName: user.firstName,
-            userId: user._id.toString(),
-            privilege: user.privilegeLevel,
-          };
+            };
+          }
+        } else {
+          throw new Error("User not found");
         }
-      } else {
-        throw new Error("User not found");
+      } catch (err) {
+        throw new Error(err);
       }
     },
     addProduct: async (parent, args, context, info) => {
@@ -191,6 +236,7 @@ const resolvers = {
           discount,
           promoStartDate,
           promoEndDate,
+          videoLink,
           images,
         } = args.product;
         try {
@@ -208,6 +254,7 @@ const resolvers = {
             discount,
             promoStartDate,
             promoEndDate,
+            videoLink,
             images,
           });
           await product.save();
@@ -248,18 +295,22 @@ const resolvers = {
         discount,
         promoStartDate,
         promoEndDate,
+        videoLink,
         images,
       } = args.product;
       try {
         if (context.validAccessToken) {
           let newImages = [];
+          let newVideoLink = "";
           const oldProduct = await Product.findById(id);
           const oldImages = oldProduct.images;
-          if (images.length > 0) {
-            newImages = oldImages.concat(images);
+          const oldVideoLink = oldProduct.videoLink;
+          if (videoLink !== "" && videoLink !== null) {
+            newVideoLink = videoLink;
           } else {
-            newImages = images;
+            newVideoLink = oldVideoLink;
           }
+          newImages = oldImages.concat(images);
           if (
             oldProduct.sellerEmail === context.email ||
             context.userStatus === "admin"
@@ -279,6 +330,7 @@ const resolvers = {
                 discount,
                 promoStartDate,
                 promoEndDate,
+                videoLink: newVideoLink,
                 images: newImages,
               },
               { new: true }

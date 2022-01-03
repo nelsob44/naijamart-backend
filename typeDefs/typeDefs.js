@@ -20,6 +20,7 @@ const typeDefs = gql`
     id: ID
     category: String
     description: String
+    videoLink: String
     images: [String]
     price: Float!
     title: String!
@@ -80,6 +81,7 @@ const typeDefs = gql`
     discount: Float
     promoStartDate: String
     promoEndDate: String
+    videoLink: String
     images: [String]
   }
 
@@ -98,6 +100,7 @@ const typeDefs = gql`
     discount: Float
     promoStartDate: String
     promoEndDate: String
+    videoLink: String
     images: [String]
   }
 
@@ -110,6 +113,12 @@ const typeDefs = gql`
     country: String
     city: String
     address: String
+  }
+
+  input ResetUserInput {
+    email: String!
+    password: String!
+    resetPasswordToken: String!
   }
 
   input AuthInput {
@@ -127,6 +136,8 @@ const typeDefs = gql`
     createUser(user: UserInput): User
     deleteUser(id: ID): String
     updateUser(id: ID, user: UserInput): User
+    sendResetLink(email: String): String
+    changePassword(user: ResetUserInput): String
 
     updateProduct(product: UpdateProductInput): Product
 
