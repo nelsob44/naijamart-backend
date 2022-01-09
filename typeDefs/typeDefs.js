@@ -8,12 +8,13 @@ const typeDefs = gql`
     firstName: String
     lastName: String
     email: String
-    password: String
     phoneNumber: String
     country: String
     city: String
     address: String
     isVerified: Boolean
+    privilegeLevel: String
+    profilePic: [String]
   }
 
   type Product {
@@ -48,6 +49,7 @@ const typeDefs = gql`
     firstName: String!
     userId: String!
     privilege: String!
+    isVerified: Boolean!
   }
 
   type File {
@@ -113,6 +115,18 @@ const typeDefs = gql`
     country: String
     city: String
     address: String
+    profilePic: [String]
+  }
+
+  input UpdateUserInput {
+    firstName: String
+    lastName: String
+    password: String
+    phoneNumber: String
+    country: String
+    city: String
+    address: String
+    profilePic: [String]
   }
 
   input ResetUserInput {
@@ -129,14 +143,16 @@ const typeDefs = gql`
   type Query {
     getMyProducts(myproductQuery: PaginationInputQuery): ProductPaginate
     getAvailableProducts(pagination: PaginationInput): ProductPaginate
-    getUser(id: ID): User
+    getUser(userId: ID!): User
   }
 
   type Mutation {
-    createUser(user: UserInput): User
-    deleteUser(id: ID): String
-    updateUser(id: ID, user: UserInput): User
-    sendResetLink(email: String): String
+    createUser(user: UserInput!): User
+    deleteUser(id: ID!): String
+    updateUser(id: ID!, user: UpdateUserInput): User
+    sendResetLink(email: String!): String
+    verifyUser(userId: ID!): String
+    resendVerification(userId: ID!): String
     changePassword(user: ResetUserInput): String
 
     updateProduct(product: UpdateProductInput): Product
@@ -144,7 +160,7 @@ const typeDefs = gql`
     authenticateUser(user: AuthInput): Token
     refresh: String
     addProduct(product: ProductInput): Product
-    deleteProduct(id: ID): String
+    deleteProduct(id: ID!): String
   }
 `;
 

@@ -18,6 +18,9 @@ const UserSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    profilePic: {
+      type: [String],
+    },
     phoneNumber: {
       type: String,
       required: true,
@@ -42,10 +45,6 @@ const UserSchema = new mongoose.Schema(
       type: String,
       enum: ["consumer", "customer", "admin"],
       default: "consumer",
-    },
-    registrationDate: {
-      type: Date,
-      default: Date.now(),
     },
     refreshToken: {
       type: String,

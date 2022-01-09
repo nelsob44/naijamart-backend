@@ -1,6 +1,7 @@
 const express = require("express");
 const { ApolloServer } = require("apollo-server-express");
 const { AuthenticationError } = require("apollo-server-errors");
+const { engine } = require("express-handlebars");
 const jwt = require("jsonwebtoken");
 const port = process.env.PORT || 4000;
 const typeDefs = require("./typeDefs/typeDefs");
@@ -21,18 +22,13 @@ const User = require("./models/User.model");
 const path = require("path");
 const refreshTokens = [];
 
-// const corsOptions = {
-//   origin: ["http://localhost:8100/"],
-//   optionsSuccessStatus: 200,
-//   credentials: true,
-//   methods: "GET, HEAD, PUT, PATCH, POST, OPTIONS",
-//   exposedHeaders: "*",
-// };
-
 async function startServer() {
   const app = express();
+  app.engine("handlebars", engine());
+  app.set("view engine", "handlebars");
+  app.set("views", "./views");
   app.use(cookieParser());
-  //app.use(cors(corsOptions));
+  app.use(express.static(path.join(__dirname, "public")));
   app.use((req, res, next) => {
     res.setHeader("Access-Control-Allow-Origin", process.env.CLIENT);
     res.setHeader(
@@ -62,6 +58,7 @@ async function startServer() {
         matchingToken: false,
         validAccessToken: false,
         userStatus: null,
+        isVerified: false,
       };
       const currentTimeStamp = Math.round(new Date().getTime() / 1000);
       const cookies = (req.headers?.cookie ?? "").split(";");
@@ -82,6 +79,7 @@ async function startServer() {
             userEmail = token.email;
             ctx.userId = token.userId;
             ctx.userStatus = token.privilege;
+            ctx.isVerified = token.isVerified;
             async function checkCredentials() {
               const user = await User.findOne({ email: token.email });
               if (user) {
@@ -218,7 +216,6 @@ async function startServer() {
   });
 
   apolloServer.applyMiddleware({ app: app });
-  console.log("I got here after apply middleware()");
   app.use((req, res) => {
     res.send("Hello from Apollo");
   });

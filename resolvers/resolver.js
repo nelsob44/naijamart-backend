@@ -1,12 +1,27 @@
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
+const handlebars = require("handlebars");
+const fs = require("fs");
 const cookieParser = require("cookie-parser");
+const path = require("path");
 const User = require("../models/User.model");
 const Product = require("../models/Product.model");
 const { AuthenticationError } = require("apollo-server-errors");
 const { GraphQLUpload, graphqlUploadExpress } = require("graphql-upload");
 const { deleteObjects } = require("../s3");
+const { sendEmail } = require("../utilities/email");
 const guid = require("guid");
+const emailTemplateSource = fs.readFileSync(
+  path.join(__dirname, "../views", "reset-password.html"),
+  "utf8"
+);
+const template = handlebars.compile(emailTemplateSource);
+
+const emailTemplateSourceWelcome = fs.readFileSync(
+  path.join(__dirname, "../views", "home.html"),
+  "utf8"
+);
+const templateWelcome = handlebars.compile(emailTemplateSourceWelcome);
 
 const imagesCarousel = [];
 
@@ -21,8 +36,15 @@ function transformImagePath(productImages) {
 const resolvers = {
   Upload: GraphQLUpload,
   Query: {
-    getUser: async (_parent, { id }, _context, _info) => {
-      return await User.findById(id);
+    getUser: async (_parent, { userId }, _context, _info) => {
+      if (_context.validAccessToken) {
+        try {
+          const user = await User.findById(userId);
+          return user;
+        } catch (err) {
+          throw new Error(err);
+        }
+      }
     },
 
     getMyProducts: async (parent, args, _context, info) => {
@@ -83,21 +105,47 @@ const resolvers = {
         city,
         address,
       } = args.user;
+
+      const newFirstName = firstName && firstName.replace(/(<([^>]+)>)/gi, "");
+      const newlastName = lastName && lastName.replace(/(<([^>]+)>)/gi, "");
+      const newemail = email && email.replace(/(<([^>]+)>)/gi, "");
+      const newphoneNumber =
+        phoneNumber & phoneNumber.replace(/(<([^>]+)>)/gi, "");
+      const newcountry = country && country.replace(/(<([^>]+)>)/gi, "");
+      const newcity = city && city.replace(/(<([^>]+)>)/gi, "");
+      const newaddress = address && address.replace(/(<([^>]+)>)/gi, "");
       const user = await User.findOne({ email });
       try {
         if (!user) {
           const hashedPassword = await bcrypt.hash(password, 12);
-          const user = new User({
-            firstName,
-            lastName,
-            email,
+          const newUser = new User({
+            firstName: newFirstName,
+            lastName: newlastName,
+            email: newemail,
             password: hashedPassword,
-            phoneNumber,
-            country,
-            city,
-            address,
+            phoneNumber: newphoneNumber,
+            country: newcountry,
+            city: newcity,
+            address: newaddress,
           });
-          await user.save();
+          const user = await newUser.save();
+          //Send email
+          const url =
+            process.env.CLIENT +
+            "/auth/verify-account?userId=" +
+            user._id.toString();
+          const htmlToSend = templateWelcome({
+            url,
+            name: user.firstName,
+          });
+          const messageData = {
+            from: "Malamino <admin@malamino.com>",
+            to: email,
+            subject: "Welcome",
+            html: htmlToSend,
+          };
+          sendEmail(messageData);
+
           return user;
         } else {
           throw new Error("User already exists");
@@ -112,76 +160,159 @@ const resolvers = {
       return "User successfully deleted";
     },
     sendResetLink: async (parent, args, context, info) => {
-      console.log(args);
       const { email } = args;
-      const user = await User.findOne({ email });
-      if (user) {
-        const userId = user._id.toString();
-        const resetTokenGuid = guid.raw();
-        const resetPasswordToken = encodeURIComponent(resetTokenGuid);
-        console.log({ resetTokenGuid });
-        console.log({ resetPasswordToken });
-        await User.findByIdAndUpdate(userId, {
-          resetPasswordToken,
-        });
-        //Send email
+      try {
+        const user = await User.findOne({ email });
+        if (user) {
+          const userId = user._id.toString();
+          const resetTokenGuid = guid.raw();
+          const resetPasswordToken = encodeURIComponent(resetTokenGuid);
+          await User.findByIdAndUpdate(userId, {
+            resetPasswordToken,
+          });
+          //Send email
+          const url =
+            process.env.CLIENT +
+            "/auth/response-reset?token=" +
+            resetPasswordToken;
+          const htmlToSend = template({
+            url,
+            name: user.firstName,
+          });
+          const messageData = {
+            from: "Malamino <admin@malamino.com>",
+            to: email,
+            subject: "Reset Password",
+            html: htmlToSend,
+          };
+          sendEmail(messageData);
 
-        return "Check your email to click on the link to create your new password!";
-      } else {
-        throw new Error("User not found");
+          return "Check your email to click on the link to create your new password!";
+        } else {
+          throw new Error("User not found");
+        }
+      } catch (err) {
+        throw new Error(err);
+      }
+    },
+    resendVerification: async (parent, args, context, info) => {
+      const { userId } = args;
+      try {
+        const user = await User.findById(userId);
+        if (user) {
+          const email = user.email;
+          //Send email
+          const url =
+            process.env.CLIENT +
+            "/auth/verify-account?userId=" +
+            userId.toString();
+          const htmlToSend = templateWelcome({
+            url,
+            name: user.firstName,
+          });
+          const messageData = {
+            from: "Malamino <admin@malamino.com>",
+            to: email,
+            subject: "Welcome",
+            html: htmlToSend,
+          };
+          sendEmail(messageData);
+
+          return "Check your email to click on the link to complete your account verification!";
+        } else {
+          throw new Error("User not found");
+        }
+      } catch (err) {
+        throw new Error(err);
       }
     },
     updateUser: async (parent, args, context, info) => {
-      const { id } = args;
-      const {
-        firstName,
-        lastName,
-        email,
-        password,
-        phoneNumber,
-        country,
-        city,
-        address,
-      } = args.user;
-      if (context?.email) {
-        const user = await User.findByIdAndUpdate(
-          id,
-          {
+      if (context.validAccessToken) {
+        try {
+          const { id } = args;
+          const {
             firstName,
             lastName,
-            email,
             password,
             phoneNumber,
             country,
             city,
             address,
-          },
-          { new: true }
-        );
-        return user;
+            profilePic,
+          } = args.user;
+          const hashedPassword = password && (await bcrypt.hash(password, 12));
+          const newFirstName =
+            firstName && firstName.replace(/(<([^>]+)>)/gi, "");
+          const newlastName = lastName && lastName.replace(/(<([^>]+)>)/gi, "");
+          const newphoneNumber =
+            phoneNumber && phoneNumber.replace(/(<([^>]+)>)/gi, "");
+          const newcountry = country && country.replace(/(<([^>]+)>)/gi, "");
+          const newcity = city && city.replace(/(<([^>]+)>)/gi, "");
+          const newaddress = address && address.replace(/(<([^>]+)>)/gi, "");
+          let newProfilePic = [];
+          let newPassword = "";
+          const oldUser = await User.findById(id);
+          if (oldUser) {
+            const oldPic = oldUser.profilePic;
+            if (profilePic.length > 0) {
+              newProfilePic = profilePic;
+              await deleteObjects(oldPic);
+            } else {
+              newProfilePic = oldPic;
+            }
+            if (password) {
+              newPassword = hashedPassword;
+            } else {
+              newPassword = oldUser.password;
+            }
+            const user = await User.findByIdAndUpdate(
+              id,
+              {
+                firstName: newFirstName,
+                lastName: newlastName,
+                password: newPassword,
+                phoneNumber: newphoneNumber,
+                country: newcountry,
+                city: newcity,
+                address: newaddress,
+                profilePic: newProfilePic,
+              },
+              { new: true }
+            );
+            return user;
+          } else {
+            throw new Error("User not found");
+          }
+        } catch (err) {
+          throw new Error(err);
+        }
       } else {
         throw new AuthenticationError("Invalid credentials!");
       }
     },
     changePassword: async (parent, args, context, info) => {
       const { email, password, resetPasswordToken } = args.user;
-      const user = await User.findOne({ email, resetPasswordToken });
-      if (user) {
-        const userId = user._id.toString();
-        const hashedPassword = await bcrypt.hash(password, 12);
+      try {
+        const user = await User.findOne({ email, resetPasswordToken });
+        if (user) {
+          const userId = user._id.toString();
+          const hashedPassword = await bcrypt.hash(password, 12);
 
-        await User.findByIdAndUpdate(
-          userId,
-          {
-            password: hashedPassword,
-            resetPasswordToken: "",
-          },
-          { new: true }
-        );
+          await User.findByIdAndUpdate(
+            userId,
+            {
+              password: hashedPassword,
+              resetPasswordToken: "",
+            },
+            { new: true }
+          );
 
-        return "Password reset was successful. Please login with new password.";
-      } else {
-        throw new Error("User not found");
+          return "Password reset was successful. Please login with new password.";
+        } else {
+          throw new Error("User not found");
+        }
+      } catch (err) {
+        throw new Error(err);
       }
     },
     authenticateUser: async (parent, args, context, info) => {
@@ -211,6 +342,7 @@ const resolvers = {
               firstName: user.firstName,
               userId: user._id.toString(),
               privilege: user.privilegeLevel,
+              isVerified: user.isVerified,
             };
           }
         } else {
@@ -220,9 +352,25 @@ const resolvers = {
         throw new Error(err);
       }
     },
+    verifyUser: async (parent, args, context, info) => {
+      const { userId } = args;
+      const user = await User.findById(userId);
+      try {
+        if (user) {
+          await User.findByIdAndUpdate(userId, {
+            isVerified: true,
+          });
+          return "Your account has been successfully verified.";
+        } else {
+          throw new Error("User not found");
+        }
+      } catch (err) {
+        throw new Error(err);
+      }
+    },
     addProduct: async (parent, args, context, info) => {
       console.log("got here now validAccessToken ", context?.validAccessToken);
-      if (context.validAccessToken) {
+      if (context.validAccessToken && context.isVerified) {
         const {
           category,
           description,
@@ -239,22 +387,37 @@ const resolvers = {
           videoLink,
           images,
         } = args.product;
+        const newcategory = category && category.replace(/(<([^>]+)>)/gi, "");
+        const newdescription =
+          description && description.replace(/(<([^>]+)>)/gi, "");
+        const newtitle = title && title.replace(/(<([^>]+)>)/gi, "");
+        const newsellerCountry =
+          sellerCountry && sellerCountry.replace(/(<([^>]+)>)/gi, "");
+        const newsellerLocation =
+          sellerLocation && sellerLocation.replace(/(<([^>]+)>)/gi, "");
+        const newfurtherDetails =
+          furtherDetails && furtherDetails.replace(/(<([^>]+)>)/gi, "");
+        const newpromoStartDate =
+          promoStartDate && promoStartDate.replace(/(<([^>]+)>)/gi, "");
+        const newpromoEndDate =
+          promoEndDate && promoEndDate.replace(/(<([^>]+)>)/gi, "");
+        const newvideoLink = videoLink.replace(/(<([^>]+)>)/gi, "");
         try {
           const product = new Product({
-            category,
-            description,
+            category: newcategory,
+            description: newdescription,
             price,
-            title,
+            title: newtitle,
             minOrder,
-            sellerCountry,
-            sellerLocation,
+            sellerCountry: newsellerCountry,
+            sellerLocation: newsellerLocation,
             sellerEmail: context.email,
-            furtherDetails,
+            furtherDetails: newfurtherDetails,
             availableQuantity,
             discount,
-            promoStartDate,
-            promoEndDate,
-            videoLink,
+            promoStartDate: newpromoStartDate,
+            promoEndDate: newpromoEndDate,
+            videoLink: newvideoLink,
             images,
           });
           await product.save();
@@ -288,6 +451,7 @@ const resolvers = {
         price,
         title,
         minOrder,
+        sellerCountry,
         sellerLocation,
         sellerEmail,
         furtherDetails,
@@ -299,14 +463,30 @@ const resolvers = {
         images,
       } = args.product;
       try {
-        if (context.validAccessToken) {
+        if (context.validAccessToken && context.isVerified) {
+          const newcategory = category && category.replace(/(<([^>]+)>)/gi, "");
+          const newdescription =
+            description && description.replace(/(<([^>]+)>)/gi, "");
+          const newtitle = title && title.replace(/(<([^>]+)>)/gi, "");
+          const newsellerCountry =
+            sellerCountry && sellerCountry.replace(/(<([^>]+)>)/gi, "");
+          const newsellerLocation =
+            sellerLocation && sellerLocation.replace(/(<([^>]+)>)/gi, "");
+          const newfurtherDetails =
+            furtherDetails && furtherDetails.replace(/(<([^>]+)>)/gi, "");
+          const newpromoStartDate =
+            promoStartDate && promoStartDate.replace(/(<([^>]+)>)/gi, "");
+          const newpromoEndDate =
+            promoEndDate && promoEndDate.replace(/(<([^>]+)>)/gi, "");
+          const newvideoLinkString =
+            videoLink && videoLink.replace(/(<([^>]+)>)/gi, "");
           let newImages = [];
           let newVideoLink = "";
           const oldProduct = await Product.findById(id);
           const oldImages = oldProduct.images;
           const oldVideoLink = oldProduct.videoLink;
-          if (videoLink !== "" && videoLink !== null) {
-            newVideoLink = videoLink;
+          if (newvideoLinkString !== "" && newvideoLinkString !== null) {
+            newVideoLink = newvideoLinkString;
           } else {
             newVideoLink = oldVideoLink;
           }
@@ -318,18 +498,19 @@ const resolvers = {
             const product = await Product.findByIdAndUpdate(
               id,
               {
-                category,
-                description,
+                category: newcategory,
+                description: newdescription,
                 price,
-                title,
+                title: newtitle,
                 minOrder,
-                sellerLocation,
+                sellerCountry: newsellerCountry,
+                sellerLocation: newsellerLocation,
                 sellerEmail,
-                furtherDetails,
+                furtherDetails: newfurtherDetails,
                 availableQuantity,
                 discount,
-                promoStartDate,
-                promoEndDate,
+                promoStartDate: newpromoStartDate,
+                promoEndDate: newpromoEndDate,
                 videoLink: newVideoLink,
                 images: newImages,
               },
@@ -348,7 +529,7 @@ const resolvers = {
     },
     deleteProduct: async (parent, args, context, info) => {
       const { id } = args;
-      if (context.validAccessToken) {
+      if (context.validAccessToken && context.isVerified) {
         try {
           const product = await Product.findById(id);
           if (
