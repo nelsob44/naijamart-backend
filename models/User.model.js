@@ -37,6 +37,22 @@ const UserSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    userDeviceType: {
+      type: String,
+    },
+    userIpAddress: {
+      type: String,
+    },
+    lastLoginTime: {
+      type: String,
+    },
+    isOnline: {
+      type: Boolean,
+      default: false,
+    },
+    extraUserData: {
+      type: String,
+    },
     isVerified: {
       type: Boolean,
       default: false,
