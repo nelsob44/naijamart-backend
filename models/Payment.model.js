@@ -10,9 +10,9 @@ const PaymentSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
-    time: {
-      type: Date,
-      default: Date.now(),
+    transactionReference: {
+      type: String,
+      required: true,
     },
     paymentFrom: {
       type: String,
@@ -21,6 +21,10 @@ const PaymentSchema = new mongoose.Schema(
     paymentTo: {
       type: String,
       required: true,
+    },
+    isCompleteTransaction: {
+      type: Boolean,
+      default: false,
     },
   },
   { timestamps: true }

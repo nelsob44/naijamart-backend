@@ -1,0 +1,135 @@
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Welcome</title>
+    <style type="text/css">
+      body {
+        margin: 0 auto;
+        padding: 0;
+      }
+
+      .container {
+        background: linear-gradient(
+          90deg,
+          rgb(124, 124, 218) 0%,
+          rgba(0, 212, 255, 1) 100%
+        );
+        width: 70%;
+        margin: 0 auto;
+        padding: 20px;
+        border-radius: 3px;
+      }
+      /* h1,
+      p,
+      a {
+        color: #ffffff;
+      } */
+      .button {
+        background-color: #4caf50;
+        border: none;
+        border-radius: 5px;
+        color: white;
+        outline: none;
+        cursor: pointer;
+        font: inherit;
+        padding: 10px;
+        margin: 10px;
+        font-weight: bold;
+        box-shadow: 0 8px 16px 0 rgba(0, 0, 0, 0.2),
+          0 6px 20px 0 rgba(0, 0, 0, 0.19);
+      }
+      .button:hover {
+        background-color: #dbe9dc;
+        color: rgb(19, 19, 20);
+        cursor: pointer;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      .flex-container {
+        display: flex;
+        flex-wrap: wrap;
+        font-size: 30px;
+        text-align: center;
+      }
+
+      .flex-item-left {
+        background-color: #f1f1f1;
+        padding: 10px;
+        flex: 30%;
+      }
+
+      .flex-item-right {
+        background-color: dodgerblue;
+        padding: 10px;
+        flex: 70%;
+      }
+
+      /* Responsive layout - makes a one column-layout instead of a two-column layout */
+      @media (max-width: 800px) {
+        .flex-item-right,
+        .flex-item-left {
+          flex: 100%;
+        }
+      }
+
+      @media (max-width: 715px) {
+        .container {
+          width: 100%;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>Order Confirmation</h1>
+
+      <p>Hi {{name}}</p>
+      {{#if isBuyer}}
+      <p>Thanks for your order. Please see details of your order below</p>
+      {{else}}
+      <p>You have received an order from {{buyerName }}</p>
+      {{/if}}
+
+      <div class="flex-container">
+        <div class="flex-item-left">Buyer</div>
+        <div class="flex-item-right">{{buyerName}}</div>
+      </div>
+
+      <div class="flex-container">
+        <div class="flex-item-left">Seller</div>
+        <div class="flex-item-right">{{sellerName}}</div>
+      </div>
+
+      <div class="flex-container">
+        <div class="flex-item-left">Item purchased</div>
+        <div class="flex-item-right">{{itemName}}</div>
+      </div>
+      <div class="flex-container">
+        <div class="flex-item-left">Quantity ordered</div>
+        <div class="flex-item-right">{{quantityPurchased}}</div>
+      </div>
+
+      <div class="flex-container">
+        <div class="flex-item-left">Delivery Address</div>
+        <div class="flex-item-right">{{deliveryAddress}}</div>
+      </div>
+
+      <div class="flex-container">
+        <div class="flex-item-left">Amount paid</div>
+        <div class="flex-item-right">{{amountPaid}}</div>
+      </div>
+
+      <div class="flex-container">
+        <div class="flex-item-left">Payment Reference</div>
+        <div class="flex-item-right">{{paymentId}}</div>
+      </div>
+
+      <p>Yours Sincerely,</p>
+      <br />
+      <p>The Malamino Team</p>
+    </div>
+  </body>
+</html>

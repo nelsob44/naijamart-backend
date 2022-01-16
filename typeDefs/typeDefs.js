@@ -52,6 +52,17 @@ const typeDefs = gql`
     isVerified: Boolean!
   }
 
+  type Payment {
+    id: ID
+    amount: Int!
+    purpose: String
+    transactionReference: String!
+    paymentFrom: String!
+    paymentTo: String!
+    isCompleteTransaction: Boolean!
+    createdAt: String!
+  }
+
   type File {
     filename: String!
     mimetype: String!
@@ -140,6 +151,19 @@ const typeDefs = gql`
     password: String!
   }
 
+  input CompletePaymentInput {
+    id: ID!
+    transactionReference: String!
+  }
+
+  input PaymentInput {
+    amount: Int!
+    purpose: String
+    transactionReference: String!
+    paymentFrom: String!
+    paymentTo: String!
+  }
+
   type Query {
     getMyProducts(myproductQuery: PaginationInputQuery): ProductPaginate
     getAvailableProducts(pagination: PaginationInput): ProductPaginate
@@ -161,6 +185,10 @@ const typeDefs = gql`
     refresh: String
     addProduct(product: ProductInput): Product
     deleteProduct(id: ID!): String
+
+    makePayment(payment: PaymentInput): Payment
+    checkPaymentEligibility(payment: PaymentInput): [String]
+    completePayment(id: ID!, transactionReference: String!): Payment
   }
 `;
 

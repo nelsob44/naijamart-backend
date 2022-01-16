@@ -1,0 +1,73 @@
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Welcome</title>
+    <style type="text/css">
+      body {
+        margin: 0 auto;
+        padding: 0;
+      }
+
+      .container {
+        background: linear-gradient(
+          90deg,
+          rgb(124, 124, 218) 0%,
+          rgba(0, 212, 255, 1) 100%
+        );
+        width: 70%;
+        margin: 0 auto;
+        padding: 20px;
+        border-radius: 3px;
+      }
+      /* h1,
+      p,
+      a {
+        color: #ffffff;
+      } */
+      .button {
+        background-color: #4caf50;
+        border: none;
+        border-radius: 5px;
+        color: white;
+        outline: none;
+        cursor: pointer;
+        font: inherit;
+        padding: 10px;
+        margin: 10px;
+        font-weight: bold;
+        box-shadow: 0 8px 16px 0 rgba(0, 0, 0, 0.2),
+          0 6px 20px 0 rgba(0, 0, 0, 0.19);
+      }
+      .button:hover {
+        background-color: #dbe9dc;
+        color: rgb(19, 19, 20);
+        cursor: pointer;
+      }
+
+      @media (max-width: 715px) {
+        .container {
+          width: 100%;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>Stock Quantity Error</h1>
+
+      <p>Hi {{sellerName}}</p>
+
+      <p>
+        We are sorry to inform you that an error occured with a transaction.
+        Your customer {{buyerName}} has made payment for {{quantityError}} units
+        of {{itemName}}, but our records indicate you only have
+        {{availableQuantity}} units available. Please contact Admin to update
+        the records and resolve the transaction error with the customer.
+      </p>
+
+      <p>Yours Sincerely,</p>
+      <br />
+      <p>The Malamino Team</p>
+    </div>
+  </body>
+</html>
