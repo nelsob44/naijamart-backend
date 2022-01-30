@@ -62,7 +62,6 @@ const getAvailableProducts = async (parent, args, _context, info) => {
 exports.getAvailableProducts = getAvailableProducts;
 
 const addProduct = async (parent, args, context, info) => {
-  console.log("got here now validAccessToken ", context?.validAccessToken);
   if (context.validAccessToken && context.isVerified) {
     const {
       category,
