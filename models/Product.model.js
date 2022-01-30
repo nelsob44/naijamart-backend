@@ -13,7 +13,6 @@ const ProductSchema = new mongoose.Schema(
     },
     videoLink: {
       type: String,
-      required: true,
     },
     images: {
       type: [String],

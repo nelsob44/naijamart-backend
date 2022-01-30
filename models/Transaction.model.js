@@ -2,17 +2,33 @@ const mongoose = require("mongoose");
 
 const TransactionSchema = new mongoose.Schema(
   {
+    userEmail: {
+      type: String,
+      required: true,
+    },
     amount: {
       type: Number,
-      default: 0,
+      required: true,
     },
-    buyer: {
+    transactionReference: {
       type: String,
       required: true,
     },
-    seller: {
+    transactionType: {
       type: String,
       required: true,
+    },
+    paymentFrom: {
+      type: String,
+      required: true,
+    },
+    paymentTo: {
+      type: String,
+      required: true,
+    },
+    isCompleteTransaction: {
+      type: Boolean,
+      default: false,
     },
   },
   { timestamps: true }

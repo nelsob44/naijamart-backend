@@ -1,0 +1,89 @@
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Welcome</title>
+    <style type="text/css">
+      body {
+        margin: 0 auto;
+        padding: 0;
+      }
+
+      .container {
+        background: linear-gradient(
+          90deg,
+          rgb(124, 124, 218) 0%,
+          rgba(0, 212, 255, 1) 100%
+        );
+        width: 70%;
+        margin: 0 auto;
+        padding: 20px;
+        border-radius: 3px;
+      }
+      /* h1,
+      p,
+      a {
+        color: #ffffff;
+      } */
+      .button {
+        background-color: #4caf50;
+        border: none;
+        border-radius: 5px;
+        color: white;
+        outline: none;
+        cursor: pointer;
+        font: inherit;
+        padding: 10px;
+        margin: 10px;
+        font-weight: bold;
+        box-shadow: 0 8px 16px 0 rgba(0, 0, 0, 0.2),
+          0 6px 20px 0 rgba(0, 0, 0, 0.19);
+      }
+      .button:hover {
+        background-color: #dbe9dc;
+        color: rgb(19, 19, 20);
+        cursor: pointer;
+      }
+
+      @media (max-width: 715px) {
+        .container {
+          width: 100%;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    {{#if isRecipient}}
+    <div class="container">
+      <h1>Credit Alert!</h1>
+
+      <p>Hi {{recipientName}}</p>
+
+      <p>
+        This is to confirm you have just received a Credit transfer of {{
+        transferValue }} Naira from {{ senderName }} using the account {{
+        senderEmail }}
+      </p>
+
+      <p>Yours Sincerely,</p>
+      <br />
+      <p>The Malamino Team</p>
+    </div>
+    {{else}}
+
+    <div class="container">
+      <h1>Debit Alert!</h1>
+
+      <p>Hi {{senderName}}</p>
+
+      <p>
+        This is to confirm you have just transferred {{ transferValue }} Naira
+        to {{recipientName}} Naira using the email {{recipientEmail}}
+      </p>
+
+      <p>Yours Sincerely,</p>
+      <br />
+      <p>The Malamino Team</p>
+    </div>
+    {{/if}}
+  </body>
+</html>

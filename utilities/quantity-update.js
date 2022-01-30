@@ -112,6 +112,7 @@ async function updateQuantity(
               },
               { new: true }
             );
+            //console.log(`item ${i} is`, itemsToPurchase[i]);
             const htmlToSendSeller = templateInvoice({
               sellerName: seller.firstName,
               name: seller.firstName,

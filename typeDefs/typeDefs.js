@@ -55,7 +55,18 @@ const typeDefs = gql`
   type Payment {
     id: ID
     amount: Int!
-    purpose: String
+    transactionType: String
+    transactionReference: String!
+    paymentFrom: String!
+    paymentTo: String!
+    isCompleteTransaction: Boolean!
+    createdAt: String!
+  }
+
+  type Transaction {
+    id: ID!
+    amount: Int!
+    transactionType: String
     transactionReference: String!
     paymentFrom: String!
     paymentTo: String!
@@ -67,6 +78,22 @@ const typeDefs = gql`
     filename: String!
     mimetype: String!
     encoding: String!
+  }
+
+  type Account {
+    userName: String!
+    accountType: String!
+    currentBalance: Int!
+    lastCreditFrom: String!
+    lastPaymentTo: String!
+    lastTransactionAmount: Int!
+    updatedAt: String!
+  }
+
+  type Recipient {
+    id: ID!
+    userName: String!
+    userEmail: String!
   }
 
   input PaginationInput {
@@ -127,6 +154,9 @@ const typeDefs = gql`
     city: String
     address: String
     profilePic: [String]
+    bankName: String
+    bankAccountNumber: Int
+    bankSortCode: Int
   }
 
   input UpdateUserInput {
@@ -164,10 +194,25 @@ const typeDefs = gql`
     paymentTo: String!
   }
 
+  input AccountInput {
+    amount: Int!
+    transactionType: String
+    transactionReference: String!
+    paymentFrom: String!
+    paymentTo: String!
+  }
+
+  input TransferInput {
+    transferValue: Int!
+    recipientEmail: String!
+  }
+
   type Query {
     getMyProducts(myproductQuery: PaginationInputQuery): ProductPaginate
     getAvailableProducts(pagination: PaginationInput): ProductPaginate
     getUser(userId: ID!): User
+    getAccountBalance(email: String): Account
+    getRecipients(recipientEmail: String!): [Recipient]
   }
 
   type Mutation {
@@ -189,6 +234,10 @@ const typeDefs = gql`
     makePayment(payment: PaymentInput): Payment
     checkPaymentEligibility(payment: PaymentInput): [String]
     completePayment(id: ID!, transactionReference: String!): Payment
+
+    createTransaction(payment: AccountInput): Transaction
+    completeTransaction(id: ID!, transactionReference: String!): Transaction
+    transferCredit(transfer: TransferInput): Account
   }
 `;
 

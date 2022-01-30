@@ -11,9 +11,7 @@ const client = mailgun.client({
 function sendEmail(messageData) {
   client.messages
     .create(process.env.MAILGUN_SUB_DOMAIN, messageData)
-    .then((res) => {
-      console.error(res);
-    })
+    .then((res) => {})
     .catch((err) => {
       console.error(err);
     });
