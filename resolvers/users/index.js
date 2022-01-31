@@ -90,15 +90,15 @@ const verifyUser = async (parent, args, context, info) => {
 };
 exports.verifyUser = verifyUser;
 
-const getUser = async (_parent, { userId }, _context, _info) => {
-  //if (_context.validAccessToken) {
-  try {
-    const user = await User.findById(userId);
-    return user;
-  } catch (err) {
-    throw new Error(err);
+const getUser = async (parent, { userId }, context, info) => {
+  if (context.validAccessToken) {
+    try {
+      const user = await User.findById(userId);
+      return user;
+    } catch (err) {
+      throw new Error(err);
+    }
   }
-  //}
 };
 exports.getUser = getUser;
 

@@ -13,10 +13,10 @@ function transformImagePath(productImages) {
   });
 }
 
-const getMyProducts = async (parent, args, _context, info) => {
+const getMyProducts = async (parent, args, context, info) => {
   const { offset, limit } = args.myproductQuery;
-  if (_context.validAccessToken) {
-    const sellerEmail = _context.email;
+  if (context.validAccessToken) {
+    const sellerEmail = context.email;
     try {
       const totalItems = await Product.find({
         sellerEmail,
