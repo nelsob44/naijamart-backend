@@ -80,9 +80,11 @@ async function startServer() {
             ctx.userId = token.userId;
             ctx.userStatus = token.privilege;
             ctx.isVerified = token.isVerified;
+            console.log({ refUserToken });
             async function checkCredentials() {
               const user = await User.findOne({ email: token.email });
               if (user) {
+                console.log("user.refreshToken is ", user.refreshToken);
                 if (refUserToken === user.refreshToken) {
                   const refTokenValidity = jwt.verify(
                     user.refreshToken,
