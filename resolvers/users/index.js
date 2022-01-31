@@ -98,6 +98,10 @@ const getUser = async (parent, { userId }, context, info) => {
     } catch (err) {
       throw new Error(err);
     }
+  } else {
+    throw new Error(
+      "You are not authorized to make this operation due to wrong parameters"
+    );
   }
 };
 exports.getUser = getUser;
