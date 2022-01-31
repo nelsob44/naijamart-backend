@@ -91,6 +91,7 @@ const verifyUser = async (parent, args, context, info) => {
 exports.verifyUser = verifyUser;
 
 const getUser = async (parent, { userId }, context, info) => {
+  console.log({ context });
   if (context.validAccessToken) {
     try {
       const user = await User.findById(userId);
