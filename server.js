@@ -175,7 +175,7 @@ async function startServer() {
           console.log("refreshToken on 172 ", { refreshToken });
           requestContext.response?.http?.headers.append(
             "Set-Cookie",
-            `${process.env.REF_COOKIE_NAME}=${refreshToken}; expires=${tokenExpireDate}; httpOnly=true; sameSite=none;`
+            `${process.env.REF_COOKIE_NAME}=${refreshToken}; expires=${tokenExpireDate}; httpOnly=true; sameSite=none; secure=false;`
           );
           console.log({ tokenExpireDate });
           User.findOneAndUpdate(
@@ -192,7 +192,7 @@ async function startServer() {
           console.log({ tokenExpireDate });
           requestContext.response?.http?.headers.append(
             "Set-Cookie",
-            `${process.env.REF_COOKIE_NAME}=${generalToken}; expires=${tokenExpireDate}; httpOnly=true; sameSite=false;`
+            `${process.env.REF_COOKIE_NAME}=${generalToken}; expires=${tokenExpireDate}; httpOnly=true; sameSite=false; secure=false;`
           );
         }
         requestContext.response?.http?.headers.append(
