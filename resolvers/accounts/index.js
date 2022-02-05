@@ -68,7 +68,7 @@ const completeTransaction = async (parent, args, context, info) => {
         const accountId = oldAccount.id;
         const newBalance = oldAccount.currentBalance + transaction.amount;
         const result = await Account.findByIdAndUpdate(
-          { id: accountId },
+          accountId,
           {
             currentBalance: newBalance,
             lastCreditFrom: transaction.paymentFrom,

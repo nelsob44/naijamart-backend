@@ -64,24 +64,11 @@ async function startServer() {
       };
       const currentTimeStamp = Math.round(new Date().getTime() / 1000);
       const cookies = (req.headers?.cookie ?? "").split(";");
-      console.log("req.headers? is ", req.headers);
-      console.log("req.headers?.cookie is ", req.headers?.cookie);
       if (cookies) {
-        console.log({ cookies });
         cookies.map(async (cookie) => {
           if (cookie.includes(process.env.REF_COOKIE_NAME)) {
             const refToken = cookie.split("=");
-            // const tokenSaved = await Token.findOne({
-            //   cookieValue: refToken[1],
-            // });
             refUserToken = refToken[1];
-            //console.log({ tokenSaved });
-            // if (tokenSaved) {
-            //   refUserToken = refToken[1];
-            //   await Token.findOneAndDelete({ cookieValue: refUserToken });
-            // } else {
-            //   throw new Error("An error occured retrieving your cookie tokens");
-            // }
           }
         });
       }
@@ -95,21 +82,16 @@ async function startServer() {
             ctx.userId = token.userId;
             ctx.userStatus = token.privilege;
             ctx.isVerified = token.isVerified;
-            console.log({ refUserToken });
             async function checkCredentials() {
               const user = await User.findOne({ email: token.email });
               if (user) {
-                console.log("user.refreshToken is ", user.refreshToken);
                 if (refUserToken === user.refreshToken) {
                   const refTokenValidity = jwt.verify(
                     user.refreshToken,
                     process.env.JWT_SECRET
                   );
-                  console.log({ refTokenValidity });
-                  console.log({ currentTimeStamp });
                   generalToken = user.refreshToken;
                   tokenMatch = true;
-                  console.log("line 110 ", { generalToken });
                   if (
                     refTokenValidity.data &&
                     refTokenValidity.exp > currentTimeStamp
@@ -160,7 +142,6 @@ async function startServer() {
         tokenExpireDate.setTime(
           tokenExpireDate.getTime() + 60 * 60 * 24 * 7 * 1000
         );
-        console.log("match token line 160", { tokenMatch });
         //Set cookie if user has just logged in
         if (response.data?.authenticateUser?.email) {
           const refreshTokenGuid = guid.raw();
@@ -172,12 +153,10 @@ async function startServer() {
             process.env.JWT_SECRET,
             { expiresIn: "2 days" }
           );
-          console.log("refreshToken on 172 ", { refreshToken });
           requestContext.response?.http?.headers.append(
             "Set-Cookie",
             `${process.env.REF_COOKIE_NAME}=${refreshToken}; expires=${tokenExpireDate}; httpOnly=true; sameSite=none; secure=false;`
           );
-          console.log({ tokenExpireDate });
           User.findOneAndUpdate(
             { email: response.data?.authenticateUser?.email },
             { refreshToken: refreshToken }
@@ -186,10 +165,7 @@ async function startServer() {
             .catch((error) => {
               throw new Error("An error occured setting your credentials");
             });
-          console.log("requestContext.response first", requestContext.response);
         } else if (tokenMatch) {
-          console.log({ tokenMatch });
-          console.log({ tokenExpireDate });
           requestContext.response?.http?.headers.append(
             "Set-Cookie",
             `${process.env.REF_COOKIE_NAME}=${generalToken}; expires=${tokenExpireDate}; httpOnly=true; sameSite=false; secure=false;`
@@ -198,10 +174,6 @@ async function startServer() {
         requestContext.response?.http?.headers.append(
           "Access-Control-Allow-Origin",
           process.env.CLIENT
-        );
-        console.log(
-          "requestContext.response 2nd",
-          requestContext.response?.http?.headers
         );
       }
       return response;

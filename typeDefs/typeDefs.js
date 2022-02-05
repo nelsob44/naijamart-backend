@@ -67,11 +67,11 @@ const typeDefs = gql`
     id: ID!
     amount: Int!
     transactionType: String
-    transactionReference: String!
-    paymentFrom: String!
-    paymentTo: String!
-    isCompleteTransaction: Boolean!
-    createdAt: String!
+    transactionReference: String
+    paymentFrom: String
+    paymentTo: String
+    isCompleteTransaction: Boolean
+    createdAt: String
   }
 
   type File {
