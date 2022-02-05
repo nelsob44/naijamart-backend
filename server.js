@@ -177,7 +177,7 @@ async function startServer() {
             "Set-Cookie",
             `${process.env.REF_COOKIE_NAME}=${refreshToken}; expires=${tokenExpireDate}; httpOnly=true;`
           );
-
+          console.log({ tokenExpireDate });
           User.findOneAndUpdate(
             { email: response.data?.authenticateUser?.email },
             { refreshToken: refreshToken }
@@ -189,6 +189,7 @@ async function startServer() {
           console.log("requestContext.response first", requestContext.response);
         } else if (tokenMatch) {
           console.log({ tokenMatch });
+          console.log({ tokenExpireDate });
           requestContext.response?.http?.headers.append(
             "Set-Cookie",
             `${process.env.REF_COOKIE_NAME}=${generalToken}; expires=${tokenExpireDate}; httpOnly=true;`
