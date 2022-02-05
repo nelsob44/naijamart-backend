@@ -186,6 +186,7 @@ async function startServer() {
             .catch((error) => {
               throw new Error("An error occured setting your credentials");
             });
+          console.log("requestContext.response first", requestContext.response);
         } else if (tokenMatch) {
           console.log({ tokenMatch });
           requestContext.response?.http?.headers.append(
@@ -196,6 +197,10 @@ async function startServer() {
         requestContext.response?.http?.headers.append(
           "Access-Control-Allow-Origin",
           process.env.CLIENT
+        );
+        console.log(
+          "requestContext.response 2nd",
+          requestContext.response?.http?.headers
         );
       }
       return response;
