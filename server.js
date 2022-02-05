@@ -64,8 +64,10 @@ async function startServer() {
       };
       const currentTimeStamp = Math.round(new Date().getTime() / 1000);
       const cookies = (req.headers?.cookie ?? "").split(";");
-      console.log({ cookies });
+      console.log("req.headers? is ", req.headers);
+      console.log("req.headers?.cookie is ", req.headers?.cookie);
       if (cookies) {
+        console.log({ cookies });
         cookies.map(async (cookie) => {
           if (cookie.includes(process.env.REF_COOKIE_NAME)) {
             const refToken = cookie.split("=");
