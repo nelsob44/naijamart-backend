@@ -18,6 +18,7 @@ const unlinkFile = util.promisify(fs.unlink);
 const multer = require("multer");
 const upload = multer({ dest: "uploads/" });
 const User = require("./models/User.model");
+const Token = require("./models/Token.model");
 
 const path = require("path");
 const refreshTokens = [];
@@ -47,6 +48,7 @@ async function startServer() {
   });
 
   let userEmail = "";
+  let generalToken;
   let refUserToken;
   let tokenMatch = false;
   const apolloServer = new ApolloServer({
@@ -62,11 +64,22 @@ async function startServer() {
       };
       const currentTimeStamp = Math.round(new Date().getTime() / 1000);
       const cookies = (req.headers?.cookie ?? "").split(";");
+      console.log({ cookies });
       if (cookies) {
-        cookies.map((cookie) => {
+        cookies.map(async (cookie) => {
           if (cookie.includes(process.env.REF_COOKIE_NAME)) {
             const refToken = cookie.split("=");
+            // const tokenSaved = await Token.findOne({
+            //   cookieValue: refToken[1],
+            // });
             refUserToken = refToken[1];
+            //console.log({ tokenSaved });
+            // if (tokenSaved) {
+            //   refUserToken = refToken[1];
+            //   await Token.findOneAndDelete({ cookieValue: refUserToken });
+            // } else {
+            //   throw new Error("An error occured retrieving your cookie tokens");
+            // }
           }
         });
       }
@@ -90,6 +103,11 @@ async function startServer() {
                     user.refreshToken,
                     process.env.JWT_SECRET
                   );
+                  console.log({ refTokenValidity });
+                  console.log({ currentTimeStamp });
+                  generalToken = user.refreshToken;
+                  tokenMatch = true;
+                  console.log("line 110 ", { generalToken });
                   if (
                     refTokenValidity.data &&
                     refTokenValidity.exp > currentTimeStamp
@@ -108,7 +126,6 @@ async function startServer() {
                       process.env.JWT_SECRET,
                       { expiresIn: "2 days" }
                     );
-                    refUserToken = refreshToken;
                     ctx.matchingToken = true;
                     tokenMatch = true;
                     if (token.exp > currentTimeStamp && ctx.matchingToken) {
@@ -141,7 +158,7 @@ async function startServer() {
         tokenExpireDate.setTime(
           tokenExpireDate.getTime() + 60 * 60 * 24 * 7 * 1000
         );
-
+        console.log("match token line 160", { tokenMatch });
         //Set cookie if user has just logged in
         if (response.data?.authenticateUser?.email) {
           const refreshTokenGuid = guid.raw();
@@ -153,6 +170,7 @@ async function startServer() {
             process.env.JWT_SECRET,
             { expiresIn: "2 days" }
           );
+          console.log("refreshToken on 172 ", { refreshToken });
           requestContext.response?.http?.headers.append(
             "Set-Cookie",
             `${process.env.REF_COOKIE_NAME}=${refreshToken}; expires=${tokenExpireDate}; httpOnly=true;`
@@ -167,9 +185,10 @@ async function startServer() {
               throw new Error("An error occured setting your credentials");
             });
         } else if (tokenMatch) {
+          console.log({ tokenMatch });
           requestContext.response?.http?.headers.append(
             "Set-Cookie",
-            `${process.env.REF_COOKIE_NAME}=${refUserToken}; expires=${tokenExpireDate}; httpOnly=true;`
+            `${process.env.REF_COOKIE_NAME}=${generalToken}; expires=${tokenExpireDate}; httpOnly=true;`
           );
         }
         requestContext.response?.http?.headers.append(

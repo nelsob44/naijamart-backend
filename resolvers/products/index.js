@@ -15,7 +15,6 @@ function transformImagePath(productImages) {
 
 const getMyProducts = async (parent, args, context, info) => {
   const { offset, limit } = args.myproductQuery;
-  console.log({ context });
   if (context.validAccessToken) {
     const sellerEmail = context.email;
     try {
