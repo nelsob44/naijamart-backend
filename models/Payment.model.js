@@ -22,6 +22,14 @@ const PaymentSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    paystackTransactionFee: {
+      type: Number,
+      default: 0,
+    },
+    finalAmount: {
+      type: Number,
+      default: 0,
+    },
     isCompleteTransaction: {
       type: Boolean,
       default: false,

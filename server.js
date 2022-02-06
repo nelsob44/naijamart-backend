@@ -18,7 +18,6 @@ const unlinkFile = util.promisify(fs.unlink);
 const multer = require("multer");
 const upload = multer({ dest: "uploads/" });
 const User = require("./models/User.model");
-const Token = require("./models/Token.model");
 
 const path = require("path");
 const refreshTokens = [];
