@@ -29,6 +29,7 @@ const typeDefs = gql`
     sellerCountry: String
     sellerLocation: String
     sellerEmail: String
+    sellerId: String
     verifiedSeller: Boolean
     furtherDetails: String
     availableQuantity: Int
@@ -38,8 +39,32 @@ const typeDefs = gql`
     promoStartDate: String
   }
 
+  type Order {
+    id: ID!
+    itemName: String
+    unitPrice: Float
+    itemQuantity: Int
+    amount: Float
+    finalAmount: Float
+    transactionReference: String
+    buyerEmail: String
+    sellerEmail: String
+    buyerName: String
+    sellerName: String
+    isPaidFor: Boolean
+    isDispatched: Boolean
+    isCompleteTransaction: Boolean
+    shippingDetails: String
+    createdAt: String
+  }
+
   type ProductPaginate {
     product: [Product]
+    totalItems: Int
+  }
+
+  type OrderPaginate {
+    order: [Order]
     totalItems: Int
   }
 
@@ -61,6 +86,17 @@ const typeDefs = gql`
     paymentTo: String!
     isCompleteTransaction: Boolean!
     createdAt: String!
+  }
+
+  type OutPayment {
+    id: ID
+    amount: Int
+    recepientName: String
+    recepientEmail: String
+    bankName: String
+    bankAccountNumber: Int
+    transactionReference: String
+    createdAt: String
   }
 
   type Transaction {
@@ -213,6 +249,7 @@ const typeDefs = gql`
     getUser(userId: ID!): User
     getAccountBalance(email: String): Account
     getRecipients(recipientEmail: String!): [Recipient]
+    getMyOrders(myOrderQuery: PaginationInput): OrderPaginate
   }
 
   type Mutation {
@@ -238,6 +275,7 @@ const typeDefs = gql`
     createTransaction(payment: AccountInput): Transaction
     completeTransaction(id: ID!, transactionReference: String!): Transaction
     transferCredit(transfer: TransferInput): Account
+    releaseFunds(orderId: ID!, transactionReference: String!): OutPayment
   }
 `;
 

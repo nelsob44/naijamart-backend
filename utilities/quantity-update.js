@@ -1,5 +1,6 @@
 const Product = require("../models/Product.model");
 const User = require("../models/User.model");
+const Order = require("../models/Order.model");
 const handlebars = require("handlebars");
 const fs = require("fs");
 const path = require("path");
@@ -20,13 +21,17 @@ async function updateQuantity(
   itemsToPurchase,
   buyerEmail,
   operator,
-  paymentId = null
+  transactionReference,
+  paymentId = null,
+  percentageAmount = null
 ) {
   const errors = [];
   for (let i = 0; i < itemsToPurchase.length; i++) {
     try {
       let oldProduct = await Product.findById(itemsToPurchase[i].id);
       let sellerEmail = oldProduct.sellerEmail;
+      const seller = await User.findOne({ sellerEmail });
+      const buyer = await User.findOne({ buyerEmail });
 
       switch (operator) {
         case "pre-pay-check":
@@ -41,8 +46,8 @@ async function updateQuantity(
             errors.push(
               `You have selected more quantity of ${oldProduct.title} than is currently available. Please reduce quantity`
             );
-            const seller = await User.findOne({ sellerEmail });
-            const buyer = await User.findOne({ buyerEmail });
+            // const seller = await User.findOne({ sellerEmail });
+            // const buyer = await User.findOne({ buyerEmail });
             const htmlToSend = templateCaution({
               sellerName: seller.firstName,
               buyerName: buyer.firstName + " " + buyer.lastName,
@@ -81,8 +86,6 @@ async function updateQuantity(
           );
           break;
         case "complete-transaction":
-          const seller = await User.findOne({ sellerEmail });
-          const buyer = await User.findOne({ buyerEmail });
           if (oldProduct.availableQuantity - itemsToPurchase[i].quantity < 0) {
             errors.push(
               `You have selected more quantity of ${oldProduct.title} than is currently available. Please reduce quantity`
@@ -104,6 +107,24 @@ async function updateQuantity(
             };
             sendEmail(messageData);
           } else {
+            const order = new Order({
+              itemName: itemsToPurchase[i].title,
+              unitPrice: itemsToPurchase[i].unitCost,
+              itemQuantity: itemsToPurchase[i].quantity,
+              amount: itemsToPurchase[i].subTotal,
+              finalAmount: Math.floor(
+                itemsToPurchase[i].subTotal * percentageAmount
+              ),
+              transactionReference,
+              buyerEmail,
+              sellerEmail,
+              buyerName: buyer.firstName + " " + buyer.lastName,
+              sellerName: seller.firstName + " " + seller.lastName,
+              isPaidFor: true,
+              shippingDetails: "not yet dispatched",
+            });
+            await order.save();
+
             const updated = await Product.findByIdAndUpdate(
               itemsToPurchase[i].id,
               {
@@ -117,6 +138,7 @@ async function updateQuantity(
               sellerName: seller.firstName,
               name: seller.firstName,
               isBuyer: false,
+              sellerId: seller.id,
               buyerName: buyer.firstName + " " + buyer.lastName,
               buyerEmail,
               quantityPurchased: itemsToPurchase[i].quantity,
@@ -131,6 +153,7 @@ async function updateQuantity(
               sellerName: seller.firstName,
               name: buyer.firstName,
               isBuyer: true,
+              buyerId: buyer.id,
               buyerName: buyer.firstName + " " + buyer.lastName,
               buyerEmail,
               quantityPurchased: itemsToPurchase[i].quantity,

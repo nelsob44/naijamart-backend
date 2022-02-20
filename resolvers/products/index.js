@@ -104,6 +104,7 @@ const addProduct = async (parent, args, context, info) => {
         sellerCountry: newsellerCountry,
         sellerLocation: newsellerLocation,
         sellerEmail: context.email,
+        sellerId: context.userId,
         furtherDetails: newfurtherDetails,
         availableQuantity,
         discount,

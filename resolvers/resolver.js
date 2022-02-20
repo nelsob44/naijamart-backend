@@ -31,6 +31,8 @@ const {
   transferCredit,
 } = require("./accounts");
 
+const { getMyOrders, releaseFunds } = require("./orders");
+
 const resolvers = {
   Query: {
     getUser,
@@ -38,6 +40,7 @@ const resolvers = {
     getAvailableProducts,
     getAccountBalance,
     getRecipients,
+    getMyOrders,
   },
 
   Mutation: {
@@ -56,6 +59,7 @@ const resolvers = {
     createTransaction,
     completeTransaction,
     transferCredit,
+    releaseFunds,
     refresh: (parent, args, context, info) => {
       const { refreshToken } = context;
       const token = jwt.verify(refreshToken, process.env.JWT_SECRET);

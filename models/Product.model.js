@@ -42,6 +42,10 @@ const ProductSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    sellerId: {
+      type: String,
+      required: true,
+    },
     verifiedSeller: {
       type: Boolean,
       default: false,

@@ -67,6 +67,23 @@
         flex: 70%;
       }
 
+      table {
+        font-family: arial, sans-serif;
+        border-collapse: collapse;
+        width: 100%;
+      }
+
+      td,
+      th {
+        border: 1px solid #dddddd;
+        text-align: left;
+        padding: 8px;
+      }
+
+      tr:nth-child(even) {
+        background-color: #dddddd;
+      }
+
       /* Responsive layout - makes a one column-layout instead of a two-column layout */
       @media (max-width: 800px) {
         .flex-item-right,
@@ -93,39 +110,41 @@
       <p>You have received an order from {{buyerName }}</p>
       {{/if}}
 
-      <div class="flex-container">
-        <div class="flex-item-left">Buyer</div>
-        <div class="flex-item-right">{{buyerName}}</div>
-      </div>
-
-      <div class="flex-container">
-        <div class="flex-item-left">Seller</div>
-        <div class="flex-item-right">{{sellerName}}</div>
-      </div>
-
-      <div class="flex-container">
-        <div class="flex-item-left">Item purchased</div>
-        <div class="flex-item-right">{{itemName}}</div>
-      </div>
-      <div class="flex-container">
-        <div class="flex-item-left">Quantity ordered</div>
-        <div class="flex-item-right">{{quantityPurchased}}</div>
-      </div>
-
-      <div class="flex-container">
-        <div class="flex-item-left">Delivery Address</div>
-        <div class="flex-item-right">{{deliveryAddress}}</div>
-      </div>
-
-      <div class="flex-container">
-        <div class="flex-item-left">Amount paid</div>
-        <div class="flex-item-right">{{amountPaid}}</div>
-      </div>
-
-      <div class="flex-container">
-        <div class="flex-item-left">Payment Reference</div>
-        <div class="flex-item-right">{{paymentId}}</div>
-      </div>
+      <table>
+        <tr>
+          <td>Buyer</td>
+          <td>{{buyerName}}</td>
+        </tr>
+        <tr>
+          {{#if isBuyer}}
+          <td>Buyer ID</td>
+          <td>{{buyerId}}</td>
+          {{else}}
+          <td>Seller ID</td>
+          <td>{{sellerId}}</td>
+          {{/if}}
+        </tr>
+        <tr>
+          <td>Seller</td>
+          <td>{{sellerName}}</td>
+        </tr>
+        <tr>
+          <td>Item purchased</td>
+          <td>{{itemName}}</td>
+        </tr>
+        <tr>
+          <td>Quantity ordered</td>
+          <td>{{quantityPurchased}}</td>
+        </tr>
+        <tr>
+          <td>Amount paid</td>
+          <td>{{amountPaid}}</td>
+        </tr>
+        <tr>
+          <td>Payment Reference</td>
+          <td>{{paymentId}}</td>
+        </tr>
+      </table>
 
       <p>Yours Sincerely,</p>
       <br />

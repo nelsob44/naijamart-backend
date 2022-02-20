@@ -17,7 +17,8 @@ const checkPaymentEligibility = async (parent, args, context, info) => {
       const result = await updateQuantity(
         itemsToPurchase,
         context.email,
-        "pre-pay-check"
+        "pre-pay-check",
+        transactionReference
       );
       if (result.length > 0) {
         return result;
@@ -70,12 +71,7 @@ const completePayment = async (parent, args, context, info) => {
       });
       if (incompletePayment) {
         const transactionDetails = JSON.parse(incompletePayment.purpose);
-        const result = await updateQuantity(
-          transactionDetails,
-          context.email,
-          "complete-transaction",
-          id
-        );
+
         const commission = await Commission.find({});
         const commissionRate = commission[0].regularRate;
         const transactionPromise = await paystack.verifyTransaction({
@@ -91,10 +87,20 @@ const completePayment = async (parent, args, context, info) => {
           ((100 - commissionRate) / 100) *
           (unverifiedTransxnAmount - paystackTransactionFee);
 
+        const percentageAmount = finalAmount / verifiedTransxnAmount;
+
         if (
           status === "success" &&
           verifiedTransxnAmount === unverifiedTransxnAmount
         ) {
+          const result = await updateQuantity(
+            transactionDetails,
+            context.email,
+            "complete-transaction",
+            transactionReference,
+            id,
+            percentageAmount
+          );
           const payment = await Payment.findByIdAndUpdate(
             id,
             {
