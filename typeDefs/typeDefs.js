@@ -132,6 +132,13 @@ const typeDefs = gql`
     userEmail: String!
   }
 
+  type Commission {
+    regularRate: Int
+    premiumRate: Int
+    lastUpdatedBy: String
+    updatedAt: String
+  }
+
   input PaginationInput {
     offset: Int
     limit: Int
@@ -222,6 +229,16 @@ const typeDefs = gql`
     transactionReference: String!
   }
 
+  input NotificationInput {
+    orderId: ID!
+    transactionReference: String!
+    buyerName: String!
+    buyerEmail: String!
+    itemName: String!
+    itemQuantity: Int!
+    sellerName: String!
+  }
+
   input PaymentInput {
     amount: Int!
     purpose: String
@@ -246,10 +263,12 @@ const typeDefs = gql`
   type Query {
     getMyProducts(myproductQuery: PaginationInputQuery): ProductPaginate
     getAvailableProducts(pagination: PaginationInput): ProductPaginate
-    getUser(userId: ID!): User
+    getUser(userId: String!): User
     getAccountBalance(email: String): Account
     getRecipients(recipientEmail: String!): [Recipient]
     getMyOrders(myOrderQuery: PaginationInput): OrderPaginate
+    getCommissions(status: String): Commission
+    getOrder(orderId: ID!): Order
   }
 
   type Mutation {
@@ -276,6 +295,9 @@ const typeDefs = gql`
     completeTransaction(id: ID!, transactionReference: String!): Transaction
     transferCredit(transfer: TransferInput): Account
     releaseFunds(orderId: ID!, transactionReference: String!): OutPayment
+    sendBuyerNotification(notification: NotificationInput): String
+    updateRegularCommission(percentage: Int!): String
+    updatePremiumCommission(percentage: Int!): String
   }
 `;
 

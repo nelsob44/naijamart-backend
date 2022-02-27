@@ -91,11 +91,15 @@ const verifyUser = async (parent, args, context, info) => {
 exports.verifyUser = verifyUser;
 
 const getUser = async (parent, { userId }, context, info) => {
-  console.log({ context });
   if (context.validAccessToken) {
     try {
-      const user = await User.findById(userId);
-      return user;
+      let returnedUser;
+      let userWithEmail = await User.findOne({ email: userId });
+      if (!userWithEmail) {
+        userWithEmail = await User.findById(userId);
+      }
+      returnedUser = userWithEmail;
+      return returnedUser;
     } catch (err) {
       throw new Error(err);
     }

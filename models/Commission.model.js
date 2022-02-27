@@ -10,6 +10,10 @@ const CommissionSchema = new mongoose.Schema(
       type: Number,
       default: 2,
     },
+    lastUpdatedBy: {
+      type: String,
+      required: true,
+    },
   },
   { timestamps: true }
 );
