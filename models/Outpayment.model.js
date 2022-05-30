@@ -14,7 +14,7 @@ const OutpaymentSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
-    bankName: {
+    bankCode: {
       type: String,
       required: true,
     },
@@ -25,6 +25,14 @@ const OutpaymentSchema = new mongoose.Schema(
     transactionReference: {
       type: String,
       required: true,
+    },
+    temporaryPause: {
+      type: Boolean,
+      default: false,
+    },
+    isCompleteTransaction: {
+      type: Boolean,
+      default: false,
     },
   },
   { timestamps: true }

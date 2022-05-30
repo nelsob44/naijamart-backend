@@ -215,6 +215,14 @@ async function startServer() {
     } catch (e) {}
   });
 
+  app.post("/malamino-webhook", function (req, res) {
+    // Retrieve the request's body
+    var event = req.body;
+    // Do something with event
+    console.log("event for webhook ", event);
+    res.send(200);
+  });
+
   apolloServer.applyMiddleware({ app: app });
   app.use((req, res) => {
     res.send("Hello from Apollo");

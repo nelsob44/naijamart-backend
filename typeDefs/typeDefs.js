@@ -93,7 +93,7 @@ const typeDefs = gql`
     amount: Int
     recepientName: String
     recepientEmail: String
-    bankName: String
+    bankCode: String
     bankAccountNumber: Int
     transactionReference: String
     createdAt: String
@@ -136,6 +136,23 @@ const typeDefs = gql`
     regularRate: Int
     premiumRate: Int
     lastUpdatedBy: String
+    updatedAt: String
+  }
+
+  type Bank {
+    name: String
+    slug: String
+    code: String
+    longcode: String
+    gateway: String
+    pay_with_bank: Boolean
+    active: Boolean
+    is_deleted: String
+    country: String
+    currency: String
+    type: String
+    id: Int
+    createdAt: String
     updatedAt: String
   }
 
@@ -197,7 +214,7 @@ const typeDefs = gql`
     city: String
     address: String
     profilePic: [String]
-    bankName: String
+    bankCode: String
     bankAccountNumber: Int
     bankSortCode: Int
   }
@@ -269,6 +286,7 @@ const typeDefs = gql`
     getMyOrders(myOrderQuery: PaginationInput): OrderPaginate
     getCommissions(status: String): Commission
     getOrder(orderId: ID!): Order
+    getBanksList(country: String): [Bank]
   }
 
   type Mutation {
@@ -290,6 +308,8 @@ const typeDefs = gql`
     makePayment(payment: PaymentInput): Payment
     checkPaymentEligibility(payment: PaymentInput): [String]
     completePayment(id: ID!, transactionReference: String!): Payment
+    withdrawToBankSingle(amount: Int!): String
+    withdrawToBankBulk(message: String): String
 
     createTransaction(payment: AccountInput): Transaction
     completeTransaction(id: ID!, transactionReference: String!): Transaction

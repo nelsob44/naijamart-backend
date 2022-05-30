@@ -90,6 +90,7 @@ const releaseFunds = async (parent, args, context, info) => {
         recepientName: updatedOrder.sellerName,
         recepientEmail: updatedOrder.sellerEmail,
         bankName: user.bankName,
+        bankCode: "058",
         bankAccountNumber: user.bankAccountNumber,
         transactionReference: updatedOrder.transactionReference,
       });

@@ -69,15 +69,11 @@ const UserSchema = new mongoose.Schema(
     resetPasswordToken: {
       type: String,
     },
-    bankName: {
+    bankCode: {
       type: String,
       default: "none",
     },
     bankAccountNumber: {
-      type: Number,
-      default: 0000000000,
-    },
-    bankSortCode: {
       type: Number,
       default: 0000000000,
     },

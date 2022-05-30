@@ -10,6 +10,7 @@ const {
   resendVerification,
   updateUser,
   changePassword,
+  getBanksList,
 } = require("./users");
 const {
   getMyProducts,
@@ -22,6 +23,8 @@ const {
   checkPaymentEligibility,
   makePayment,
   completePayment,
+  withdrawToBankBulk,
+  withdrawToBankSingle,
 } = require("./payments");
 const {
   createTransaction,
@@ -50,6 +53,7 @@ const resolvers = {
     getMyOrders,
     getCommissions,
     getOrder,
+    getBanksList,
   },
 
   Mutation: {
@@ -71,6 +75,8 @@ const resolvers = {
     releaseFunds,
     updateRegularCommission,
     updatePremiumCommission,
+    withdrawToBankSingle,
+    withdrawToBankBulk,
     refresh: (parent, args, context, info) => {
       const { refreshToken } = context;
       const token = jwt.verify(refreshToken, process.env.JWT_SECRET);

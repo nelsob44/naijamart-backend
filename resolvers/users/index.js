@@ -2,6 +2,10 @@ const jwt = require("jsonwebtoken");
 const fs = require("fs");
 const path = require("path");
 const bcrypt = require("bcryptjs");
+let PayStack = require("paystack-node");
+let APIKEY = process.env.PAYSTACK_TEST_SECRET_KEY;
+const environment = process.env.NODE_ENV;
+const paystack = new PayStack(APIKEY, environment);
 const handlebars = require("handlebars");
 const User = require("../../models/User.model");
 const Account = require("../../models/Account.model");
@@ -121,7 +125,7 @@ const createUser = async (parent, args, context, info) => {
     country,
     city,
     address,
-    bankName,
+    bankCode,
     bankAccountNumber,
     bankSortCode,
   } = args.user;
@@ -134,7 +138,7 @@ const createUser = async (parent, args, context, info) => {
   const newcountry = country && country.replace(/(<([^>]+)>)/gi, "");
   const newcity = city && city.replace(/(<([^>]+)>)/gi, "");
   const newaddress = address && address.replace(/(<([^>]+)>)/gi, "");
-  const newbankName = bankName && bankName.replace(/(<([^>]+)>)/gi, "");
+  const newbankCode = bankCode && bankCode.replace(/(<([^>]+)>)/gi, "");
   const newbankAccountNumber = bankAccountNumber && bankAccountNumber;
   const newbankSortCode = bankSortCode && bankSortCode;
   const user = await User.findOne({ email });
@@ -150,7 +154,7 @@ const createUser = async (parent, args, context, info) => {
         country: newcountry,
         city: newcity,
         address: newaddress,
-        bankName: newbankName,
+        bankCode: newbankCode,
         bankAccountNumber: newbankAccountNumber,
         bankSortCode: newbankSortCode,
       });
@@ -354,3 +358,23 @@ const changePassword = async (parent, args, context, info) => {
   }
 };
 exports.changePassword = changePassword;
+
+const getBanksList = async (parent, args, context, info) => {
+  const { country } = args;
+  try {
+    const listBankPromise = await paystack
+      .listBanks({
+        country,
+        use_cursor: true,
+        perPage: 100,
+      })
+      .catch((err) => console.log("list error ", err));
+
+    console.log("listBankPromise ", listBankPromise.body);
+    const banks = listBankPromise.body.data;
+    return banks;
+  } catch (error) {
+    throw new Error(error);
+  }
+};
+exports.getBanksList = getBanksList;

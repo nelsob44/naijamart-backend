@@ -1,8 +1,11 @@
 const Payment = require("../../models/Payment.model");
 const User = require("../../models/User.model");
+const Account = require("../../models/Account.model");
 const Product = require("../../models/Product.model");
+const Outpayment = require("../../models/Outpayment.model");
 const Commission = require("../../models/Commission.model");
 const { updateQuantity } = require("../../utilities/quantity-update");
+const { singlePayout, bulkPayout } = require("../../utilities/payout");
 let PayStack = require("paystack-node");
 let APIKEY = process.env.PAYSTACK_TEST_SECRET_KEY;
 const environment = process.env.NODE_ENV;
@@ -35,6 +38,68 @@ const checkPaymentEligibility = async (parent, args, context, info) => {
   }
 };
 exports.checkPaymentEligibility = checkPaymentEligibility;
+
+const withdrawToBankSingle = async (parent, args, context, info) => {
+  if (context.validAccessToken && context.isVerified) {
+    const { amount } = args;
+    try {
+      const email = context.email;
+      const user = await User.findOne({ email });
+
+      const result = await singlePayout(
+        user.bankAccountNumber,
+        user.bankCode,
+        amount
+      );
+      if (result) {
+        const account = await Account.findOneAndUpdate(
+          { userEmail: email },
+          {
+            currentBalance: 0,
+          },
+          { new: true }
+        );
+        if (account) {
+          return result;
+        } else {
+          throw new Error("Could not update Account");
+        }
+      } else {
+        throw new Error("Could not process single payment request");
+      }
+    } catch (err) {
+      throw new Error(err);
+    }
+  } else {
+    throw new AuthenticationError(
+      "You are not authorized to make this operation"
+    );
+  }
+};
+exports.withdrawToBankSingle = withdrawToBankSingle;
+
+const withdrawToBankBulk = async (parent, args, context, info) => {
+  if (
+    context.validAccessToken &&
+    context.isVerified &&
+    context.userStatus === "admin"
+  ) {
+    try {
+      const result = await bulkPayout();
+      if (result) {
+        await Outpayment.deleteMany({ isCompleteTransaction: true });
+        return result;
+      }
+    } catch (err) {
+      throw new Error(err);
+    }
+  } else {
+    throw new AuthenticationError(
+      "You are not authorized to make this operation"
+    );
+  }
+};
+exports.withdrawToBankBulk = withdrawToBankBulk;
 
 const makePayment = async (parent, args, context, info) => {
   if (context.validAccessToken && context.isVerified) {
