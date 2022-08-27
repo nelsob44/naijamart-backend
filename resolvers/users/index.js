@@ -362,6 +362,15 @@ exports.changePassword = changePassword;
 const getBanksList = async (parent, args, context, info) => {
   const { country } = args;
   try {
+    const options = {
+      hostname: "api.paystack.co",
+      port: 443,
+      path: "/bank",
+      method: "GET",
+      headers: {
+        Authorization: "Bearer SECRET_KEY",
+      },
+    };
     const listBankPromise = await paystack
       .listBanks({
         country,
@@ -370,7 +379,7 @@ const getBanksList = async (parent, args, context, info) => {
       })
       .catch((err) => console.log("list error ", err));
 
-    console.log("listBankPromise ", listBankPromise.body);
+    //console.log("listBankPromise ", listBankPromise.body);
     const banks = listBankPromise.body.data;
     return banks;
   } catch (error) {
